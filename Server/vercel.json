@@ -1,27 +1,15 @@
 {
-  "headers": [
+  "version": 2,
+  "builds": [
     {
-      "source": "/api/(.*)",
-      "headers": [
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "https://the-mcg.vercel.app"
-        },
-        {
-          "key": "Access-Control-Allow-Methods",
-          "value": "GET,POST,OPTIONS,PUT,DELETE"
-        },
-        {
-          "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type,Authorization"
-        }
-      ]
+      "src": "/api/index.js",
+      "use": "@vercel/node"
     }
   ],
-  "functions": {
-    "api/index.js": {
-      "runtime": "nodejs18.x"
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/api/index.js"
     }
-  },
-  "routes": [{ "src": "/api/(.*)", "dest": "/api/index.js" }]
+  ]
 }

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 
-const Drawer = () => {
+const Drawer = ({ page, setPage }) => {
   const [isDrawOpen, setIsDrawOpen] = useState(false);
   const drawerRef = useRef(null);
   const buttonRef = useRef(null);
@@ -36,6 +36,7 @@ const Drawer = () => {
   return (
     <motion.div
       animate={{ x: isDrawOpen ? 0 : -drawerWidth }}
+      initial={{ x: -drawerWidth }}
       transition={{ type: "tween", duration: 0.3 }}
       className="fixed left-0 z-50 flex"
       style={{
@@ -52,6 +53,19 @@ const Drawer = () => {
             <li
               key={i}
               className="hover:border-b border-dotted transition cursor-pointer"
+              onClick={() => {
+                if (item === "Home") {
+                  setPage("index");
+                } else if (item === "Collection") {
+                  setPage("collection");
+                } else if (item === "Packs") {
+                  setPage("packs");
+                } else if (item === "Account") {
+                  setPage("account");
+                } else if (item === "Logout") {
+                  setPage("logout");
+                }
+              }}
             >
               {item}
             </li>

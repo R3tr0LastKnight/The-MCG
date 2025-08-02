@@ -5,7 +5,8 @@
     "express": "^5.1.0",
     "mongoose": "^8.17.0",
     "node-fetch": "^2.7.0",
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "serverless-http": "^3.2.0"
   },
   "scripts": {
     "start": "nodemon server.js"

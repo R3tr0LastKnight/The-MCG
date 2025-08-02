@@ -6,13 +6,11 @@ require("./database/db");
 
 dotenv.config();
 
-// ✅ Updated CORS setup to allow specific origin
 const allowedOrigins = ["https://the-mcg.vercel.app"];
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl)
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -29,5 +27,11 @@ app.use(express.json());
 const spotifyRoutes = require("./routes/spotify");
 app.use("/api/spotify", spotifyRoutes);
 
-const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// ✅ Export the app (for Vercel function)
+module.exports = app;
+
+// Only run listen() if not in Vercel environment
+if (process.env.NODE_ENV !== "vercel") {
+  const PORT = process.env.PORT || 4000;
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}

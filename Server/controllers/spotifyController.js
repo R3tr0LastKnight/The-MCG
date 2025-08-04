@@ -1,6 +1,6 @@
 const fetch = require("node-fetch");
 const { getValidSpotifyAccessToken } = require("../utils/spotifyAuth");
-const SpotifyToken = require("../models/tokenModel");
+const SpotifyToken = require("../models/spotifyToken");
 const ArtistAlbums = require("../models/albumModel");
 
 exports.getAlbumByName = async (req, res) => {

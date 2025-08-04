@@ -1,47 +1,42 @@
 const SpotifyToken = require("../models/tokenModel");
-const fetch = require("node-fetch");
+const axios = require("axios");
 
 async function getValidSpotifyAccessToken() {
   const tokenDoc = await SpotifyToken.findOne();
 
-  if (!tokenDoc) throw new Error("Spotify token not found");
-
-  if (tokenDoc.expiresAt > new Date()) {
-    return tokenDoc.accessToken; // still valid
+  if (!tokenDoc) {
+    throw new Error("Spotify token not found");
   }
 
-  // Refresh it
-  const authOptions = {
-    method: "POST",
-    headers: {
-      Authorization:
-        "Basic " +
-        Buffer.from(
-          `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
-        ).toString("base64"),
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: new URLSearchParams({
-      grant_type: "refresh_token",
-      refresh_token: tokenDoc.refreshToken,
-    }),
-  };
+  if (Date.now() < tokenDoc.expires_at) {
+    return tokenDoc.access_token;
+  }
 
-  const tokenRes = await fetch(
+  // Token expired → refresh
+  const res = await axios.post(
     "https://accounts.spotify.com/api/token",
-    authOptions
+    new URLSearchParams({
+      grant_type: "refresh_token",
+      refresh_token: tokenDoc.refresh_token,
+    }),
+    {
+      headers: {
+        Authorization: `Basic ${Buffer.from(
+          `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
+        ).toString("base64")}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    }
   );
-  const tokenData = await tokenRes.json();
 
-  if (!tokenRes.ok) throw new Error("Failed to refresh token");
+  const newToken = res.data.access_token;
+  const expires_in = res.data.expires_in;
 
-  const newExpiresAt = new Date(Date.now() + tokenData.expires_in * 1000);
-
-  tokenDoc.accessToken = tokenData.access_token;
-  tokenDoc.expiresAt = newExpiresAt;
+  tokenDoc.access_token = newToken;
+  tokenDoc.expires_at = Date.now() + expires_in * 1000;
   await tokenDoc.save();
 
-  return tokenData.access_token;
+  return newToken;
 }
 
-module.exports = { getValidSpotifyAccessToken };
+module.exports = getValidSpotifyAccessToken;

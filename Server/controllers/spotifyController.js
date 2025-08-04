@@ -1,5 +1,5 @@
 const fetch = require("node-fetch");
-const { getAccessToken } = require("../utils/spotifyAuth");
+const { getValidSpotifyAccessToken } = require("../utils/spotifyAuth");
 const SpotifyToken = require("../models/tokenModel");
 const ArtistAlbums = require("../models/albumModel");
 
@@ -11,7 +11,7 @@ exports.getAlbumByName = async (req, res) => {
   }
 
   try {
-    const token = await getAccessToken();
+    const token = await getValidSpotifyAccessToken();
 
     const query = encodeURIComponent(`album:${album} artist:${artist}`);
     const url = `https://api.spotify.com/v1/search?q=${query}&type=album&limit=1`;
@@ -43,7 +43,7 @@ exports.getAlbumByName = async (req, res) => {
 
 exports.fetchAndEnrichAllAlbums = async (req, res) => {
   try {
-    const token = await getAccessToken();
+    const token = await getValidSpotifyAccessToken();
 
     // Step 1: Fetch all artist/album pairs
     const artistAlbums = await ArtistAlbums.find();
@@ -131,18 +131,17 @@ exports.handleSpotifyCallback = async (req, res) => {
 
     if (!tokenRes.ok) return res.status(500).json({ error: tokenData });
 
-    const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000);
+    const expiresAt = Date.now() + tokenData.expires_in * 1000;
 
-    // Upsert token for your user (assuming only one Spotify user)
-    await SpotifyToken.findOneAndUpdate(
-      {},
-      {
-        accessToken: tokenData.access_token,
-        refreshToken: tokenData.refresh_token,
-        expiresAt,
-      },
-      { upsert: true, new: true }
-    );
+    // ⚠️ Clear any old tokens if only one is expected
+    await SpotifyToken.deleteMany();
+
+    // ✅ Save new token
+    await SpotifyToken.create({
+      access_token: tokenData.access_token,
+      refresh_token: tokenData.refresh_token,
+      expires_at: expiresAt,
+    });
 
     res.send("Authorization successful! You can close this window.");
   } catch (err) {

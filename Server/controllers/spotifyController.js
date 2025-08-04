@@ -1,5 +1,6 @@
 const fetch = require("node-fetch");
 const { getAccessToken } = require("../utils/spotifyAuth");
+const SpotifyToken = require("../models/tokenModel");
 const ArtistAlbums = require("../models/albumModel");
 
 exports.getAlbumByName = async (req, res) => {
@@ -97,5 +98,120 @@ exports.fetchAndEnrichAllAlbums = async (req, res) => {
   } catch (err) {
     console.error("Error fetching random enriched albums:", err);
     res.status(500).json({ error: "Failed to fetch albums" });
+  }
+};
+
+exports.handleSpotifyCallback = async (req, res) => {
+  const code = req.query.code;
+  if (!code) return res.status(400).send("No code provided");
+
+  const authOptions = {
+    method: "POST",
+    headers: {
+      Authorization:
+        "Basic " +
+        Buffer.from(
+          `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
+        ).toString("base64"),
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      grant_type: "authorization_code",
+      code,
+      redirect_uri: process.env.REDIRECT_URI,
+    }),
+  };
+
+  try {
+    const tokenRes = await fetch(
+      "https://accounts.spotify.com/api/token",
+      authOptions
+    );
+    const tokenData = await tokenRes.json();
+
+    if (!tokenRes.ok) return res.status(500).json({ error: tokenData });
+
+    const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000);
+
+    // Upsert token for your user (assuming only one Spotify user)
+    await SpotifyToken.findOneAndUpdate(
+      {},
+      {
+        accessToken: tokenData.access_token,
+        refreshToken: tokenData.refresh_token,
+        expiresAt,
+      },
+      { upsert: true, new: true }
+    );
+
+    res.send("Authorization successful! You can close this window.");
+  } catch (err) {
+    console.error("Callback error:", err);
+    res.status(500).send("Callback failed");
+  }
+};
+
+exports.fetchRandomPlaylistTracks = async (req, res) => {
+  try {
+    // Get valid access token
+    const tokenDoc = await Token.findOne();
+    if (!tokenDoc || !tokenDoc.accessToken) {
+      return res.status(401).json({ error: "Spotify access token missing" });
+    }
+
+    const accessToken = tokenDoc.accessToken;
+
+    // Fetch user's playlists
+    const playlistsRes = await fetch(
+      "https://api.spotify.com/v1/me/playlists",
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    const playlistsData = await playlistsRes.json();
+    if (!playlistsRes.ok) {
+      console.error("Failed to get playlists:", playlistsData);
+      return res.status(500).json({ error: "Failed to fetch playlists" });
+    }
+
+    const allTracks = [];
+
+    // Loop through all playlists and collect track previews
+    for (const playlist of playlistsData.items) {
+      const tracksRes = await fetch(
+        `https://api.spotify.com/v1/playlists/${playlist.id}/tracks`,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
+      );
+
+      const tracksData = await tracksRes.json();
+      if (tracksRes.ok) {
+        for (const item of tracksData.items) {
+          const track = item.track;
+          if (track?.preview_url) {
+            allTracks.push({
+              name: track.name,
+              artist: track.artists.map((a) => a.name).join(", "),
+              preview: track.preview_url,
+              cover: track.album.images[0]?.url,
+              spotifyUrl: track.external_urls.spotify,
+            });
+          }
+        }
+      }
+    }
+
+    // Shuffle and return 10 random tracks
+    const shuffled = allTracks.sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, 10);
+
+    res.json(selected);
+  } catch (err) {
+    console.error("Error fetching random tracks:", err);
+    res.status(500).json({ error: "Failed to fetch tracks" });
   }
 };

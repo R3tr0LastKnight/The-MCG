@@ -13,6 +13,7 @@ module.exports = {
       animation: {
         meteor: "meteor 5s linear infinite",
         grid: "grid 15s linear infinite",
+        marquee: "marquee 20s linear infinite",
       },
       keyframes: {
         meteor: {
@@ -26,6 +27,10 @@ module.exports = {
         grid: {
           "0%": { transform: "translateY(-50%)" },
           "100%": { transform: "translateY(0)" },
+        },
+        marquee: {
+          "0%": { transform: "translateX(0%)" },
+          "100%": { transform: "translateX(-50%)" },
         },
       },
     },

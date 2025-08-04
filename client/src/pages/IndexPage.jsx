@@ -7,6 +7,7 @@ import Pack from "../components/Pack.jsx";
 import CollectionPage from "./CollectionPage.jsx";
 import PacksPage from "./PacksPage.jsx";
 import AccountPage from "./AccountPage.jsx";
+import MusicPlayer from "../components/MusicPlayer.jsx";
 
 const IndexPage = () => {
   const [page, setPage] = useState("index");
@@ -19,6 +20,9 @@ const IndexPage = () => {
         )}
       />
       <Drawer page={page} setPage={setPage} />
+      <div className="hidden lg:flex">
+        <MusicPlayer />
+      </div>
       {page === "index" ? (
         <div className="flex items-center justify-center absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white">
           <Pack />

@@ -154,11 +154,11 @@ exports.fetchRandomPlaylistTracks = async (req, res) => {
   try {
     // Get valid access token
     const tokenDoc = await SpotifyToken.findOne();
-    if (!tokenDoc || !tokenDoc.accessToken) {
+    if (!tokenDoc || !tokenDoc.access_token) {
       return res.status(401).json({ error: "Spotify access token missing" });
     }
 
-    const accessToken = tokenDoc.accessToken;
+    const accessToken = tokenDoc.access_token;
 
     // Fetch user's playlists
     const playlistsRes = await fetch(

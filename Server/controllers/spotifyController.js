@@ -159,9 +159,9 @@ exports.fetchRandomPlaylistTracks = async (req, res) => {
     }
 
     const accessToken = tokenDoc.access_token;
-
     const playlistId = "13aDcHd5Gi1viMuwfYW2wY";
 
+    // Fetch tracks from the specified playlist
     const tracksRes = await fetch(
       `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
       {
@@ -171,37 +171,24 @@ exports.fetchRandomPlaylistTracks = async (req, res) => {
       }
     );
 
-    const playlistsData = await tracksRes.json();
+    const tracksData = await tracksRes.json();
     if (!tracksRes.ok) {
-      console.error("Failed to get playlists:", playlistsData);
-      return res.status(500).json({ error: "Failed to fetch playlists" });
+      console.error("Failed to get playlist tracks:", tracksData);
+      return res.status(500).json({ error: "Failed to fetch playlist tracks" });
     }
 
     const allTracks = [];
 
-    // Loop through all playlists and collect track previews
-    for (const playlist of playlistsData.items) {
-      const tracksRes = await fetch(
-        `https://api.spotify.com/v1/playlists/${playlist.id}/tracks`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
-
-      const tracksData = await tracksRes.json();
-      if (tracksRes.ok) {
-        for (const item of tracksData.items) {
-          const track = item.track;
-          if (track?.preview_url) {
-            allTracks.push({
-              name: track.name,
-              artist: track.artists.map((a) => a.name).join(", "),
-              preview: track.preview_url,
-              cover: track.album.images[0]?.url,
-              spotifyUrl: track.external_urls.spotify,
-            });
-          }
-        }
+    for (const item of tracksData.items) {
+      const track = item.track;
+      if (track?.preview_url) {
+        allTracks.push({
+          name: track.name,
+          artist: track.artists.map((a) => a.name).join(", "),
+          preview: track.preview_url,
+          cover: track.album.images?.[0]?.url,
+          spotifyUrl: track.external_urls?.spotify,
+        });
       }
     }
 
@@ -211,7 +198,7 @@ exports.fetchRandomPlaylistTracks = async (req, res) => {
 
     res.json(selected);
   } catch (err) {
-    console.error("Error fetching random tracks:", err);
+    console.error("Error fetching random playlist tracks:", err);
     res.status(500).json({ error: "Failed to fetch tracks" });
   }
 };

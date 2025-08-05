@@ -171,7 +171,7 @@ exports.fetchRandomPlaylistTracks = async (req, res) => {
       }
     );
 
-    const playlistsData = await playlistsRes.json();
+    const playlistsData = await tracksRes.json();
     if (!playlistsRes.ok) {
       console.error("Failed to get playlists:", playlistsData);
       return res.status(500).json({ error: "Failed to fetch playlists" });

@@ -160,9 +160,10 @@ exports.fetchRandomPlaylistTracks = async (req, res) => {
 
     const accessToken = tokenDoc.access_token;
 
-    // Fetch user's playlists
-    const playlistsRes = await fetch(
-      "https://api.spotify.com/v1/me/playlists",
+    const playlistId = "13aDcHd5Gi1viMuwfYW2wY";
+
+    const tracksRes = await fetch(
+      `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,

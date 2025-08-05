@@ -1,12 +1,4 @@
 import React from "react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "../components/ui/dropdown-menu.tsx";
 import MusicPlayer from "./MusicPlayer.jsx";
 
 const Nav = () => {

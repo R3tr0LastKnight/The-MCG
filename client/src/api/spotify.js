@@ -19,5 +19,15 @@ export async function fetchAllEnrichedAlbums() {
   const data = await res.json();
 
   if (!res.ok) throw new Error(data.error || "Failed to fetch albums");
-  return data; // array of { artist, album, cover, spotifyUrl }
+  return data;
+}
+
+export async function fetchTracks() {
+  const res = await fetch(
+    `${process.env.REACT_APP_BACKEND_URL}/api/spotify/random-tracks`
+  );
+  const data = await res.json();
+
+  if (!res.ok) throw new Error(data.error || "Failed to fetch albums");
+  return data;
 }

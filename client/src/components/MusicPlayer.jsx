@@ -1,3 +1,4 @@
+import { fetchTracks } from "../api/spotify";
 import React, { useEffect, useState, useRef } from "react";
 
 const MusicPlayer = () => {
@@ -8,19 +9,15 @@ const MusicPlayer = () => {
 
   // Fetch tracks from backend on mount
   useEffect(() => {
-    const fetchTracks = async () => {
+    const loadAlbums = async () => {
       try {
-        const res = await fetch(
-          "https://the-mcg-server.vercel.app/api/spotify/random-tracks"
-        );
-        const data = await res.json();
+        const data = await fetchTracks();
         setTracks(data);
       } catch (err) {
-        console.error("Failed to load tracks:", err);
+        console.error("Failed to fetch albums:", err.message);
       }
     };
-
-    fetchTracks();
+    loadAlbums();
   }, []);
 
   // Play/pause effect

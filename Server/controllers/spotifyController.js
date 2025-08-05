@@ -153,7 +153,7 @@ exports.handleSpotifyCallback = async (req, res) => {
 exports.fetchRandomPlaylistTracks = async (req, res) => {
   try {
     // Get valid access token
-    const tokenDoc = await Token.findOne();
+    const tokenDoc = await SpotifyToken.findOne();
     if (!tokenDoc || !tokenDoc.accessToken) {
       return res.status(401).json({ error: "Spotify access token missing" });
     }

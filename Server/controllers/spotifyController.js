@@ -159,7 +159,7 @@ exports.fetchRandomPlaylistTracks = async (req, res) => {
     }
 
     const accessToken = tokenDoc.access_token;
-    const playlistId = "13aDcHd5Gi1viMuwfYW2wY";
+    const playlistId = "3qpaqe8cKa6TTPzm6KWe1k";
 
     // Fetch tracks from the specified playlist
     const tracksRes = await fetch(

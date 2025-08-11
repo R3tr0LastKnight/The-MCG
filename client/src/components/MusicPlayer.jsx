@@ -43,7 +43,7 @@ const MusicPlayer = () => {
   const handlePrev = () =>
     setCurrentTrackIndex((prev) => (prev === 0 ? tracks.length - 1 : prev - 1));
 
-  if (!current) return null; // No tracks loaded yet
+  // if (!current) return null; // No tracks loaded yet
 
   return (
     <>
@@ -52,7 +52,7 @@ const MusicPlayer = () => {
           {/* Album Art */}
           <div className="rounded-full overflow-hidden lg:w-1/4">
             <img
-              src={current.cover}
+              src={current?.cover}
               alt="cover"
               className="h-10 w-10 object-cover"
             />
@@ -64,10 +64,10 @@ const MusicPlayer = () => {
             <div className="overflow-hidden whitespace-nowrap">
               <div className="flex w-max animate-marquee">
                 <span className="mr-16">
-                  {current.name} | {current.artist}
+                  {current?.name} | {current?.artist}
                 </span>
                 <span className="mr-16">
-                  {current.name} | {current.artist}
+                  {current?.name} | {current?.artist}
                 </span>
               </div>
             </div>
@@ -130,7 +130,7 @@ const MusicPlayer = () => {
       </div>
 
       {/* Hidden Audio Element */}
-      <audio ref={audioRef} src={current.preview} />
+      <audio ref={audioRef} src={current?.preview} />
     </>
   );
 };

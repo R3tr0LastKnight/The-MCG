@@ -11,6 +11,7 @@ import MusicPlayer from "../components/MusicPlayer.jsx";
 
 const IndexPage = () => {
   const [page, setPage] = useState("index");
+  const [pack, setPack] = useState("");
   return (
     <div className="flex  py-4 lg:max-h-[86vh] lg:min-h-[86vh] max-h-[74vh] min-h-[74vh] relative">
       <DotPattern
@@ -20,12 +21,13 @@ const IndexPage = () => {
         )}
       />
       <Drawer page={page} setPage={setPage} />
-      <div className="hidden lg:flex">
+      {/* <div className="hidden lg:flex">
         <MusicPlayer />
-      </div>
+      </div> */}
       {page === "index" ? (
         <div className="flex items-center justify-center absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white">
-          <Pack />
+          {/* {pack ? <></> : <Pack pack={pack} setPack={setPack} />} */}
+          <Pack pack={pack} setPack={setPack} />
         </div>
       ) : page === "collection" ? (
         <>

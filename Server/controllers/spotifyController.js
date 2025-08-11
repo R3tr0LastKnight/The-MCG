@@ -150,55 +150,89 @@ exports.handleSpotifyCallback = async (req, res) => {
   }
 };
 
-exports.fetchRandomPlaylistTracks = async (req, res) => {
-  try {
-    // Get valid access token
-    const tokenDoc = await SpotifyToken.findOne();
-    if (!tokenDoc || !tokenDoc.access_token) {
-      return res.status(401).json({ error: "Spotify access token missing" });
-    }
+// exports.fetchRandomPlaylistTracks = async (req, res) => {
+//   try {
+//     // Get valid access token
+//     const tokenDoc = await SpotifyToken.findOne();
+//     if (!tokenDoc || !tokenDoc.access_token) {
+//       return res.status(401).json({ error: "Spotify access token missing" });
+//     }
 
-    const accessToken = tokenDoc.access_token;
-    const playlistId = "3qpaqe8cKa6TTPzm6KWe1k";
+//     const accessToken = tokenDoc.access_token;
+//     const playlistId = "3qpaqe8cKa6TTPzm6KWe1k";
 
-    // Fetch tracks from the specified playlist
-    const tracksRes = await fetch(
-      `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
+//     // Fetch playlist tracks (first 100)
+//     const tracksRes = await fetch(
+//       `https://api.spotify.com/v1/playlists/${playlistId}/tracks?limit=100`,
+//       {
+//         headers: {
+//           Authorization: `Bearer ${accessToken}`,
+//         },
+//       }
+//     );
 
-    const tracksData = await tracksRes.json();
-    if (!tracksRes.ok) {
-      console.error("Failed to get playlist tracks:", tracksData);
-      return res.status(500).json({ error: "Failed to fetch playlist tracks" });
-    }
+//     const tracksData = await tracksRes.json();
+//     if (!tracksRes.ok) {
+//       console.error("Failed to get playlist tracks:", tracksData);
+//       return res.status(500).json({ error: "Failed to fetch playlist tracks" });
+//     }
 
-    const allTracks = [];
+//     // Filter only tracks with preview_url
+//     const tracksWithPreview = tracksData.items
+//       .map((item) => item.track)
+//       .filter((track) => track && track.preview_url)
+//       .map((track) => ({
+//         name: track.name,
+//         artist: track.artists.map((a) => a.name).join(", "),
+//         preview: track.preview_url,
+//         cover: track.album.images?.[0]?.url,
+//         spotifyUrl: track.external_urls?.spotify,
+//       }));
 
-    for (const item of tracksData.items) {
-      const track = item.track;
-      if (track?.preview_url) {
-        allTracks.push({
-          name: track.name,
-          artist: track.artists.map((a) => a.name).join(", "),
-          preview: track.preview_url,
-          cover: track.album.images?.[0]?.url,
-          spotifyUrl: track.external_urls?.spotify,
-        });
-      }
-    }
+//     // Option 1: fallback if not enough previewable tracks
+//     if (tracksWithPreview.length < 10) {
+//       console.warn(
+//         `Only ${tracksWithPreview.length} previewable tracks found. Using fallback tracks.`
+//       );
 
-    // Shuffle and return 10 random tracks
-    const shuffled = allTracks.sort(() => 0.5 - Math.random());
-    const selected = shuffled.slice(0, 10);
+//       const fallbackPlaylistId = "37i9dQZF1DXcBWIGoYBM5M"; // e.g., Today's Top Hits
+//       const fallbackRes = await fetch(
+//         `https://api.spotify.com/v1/playlists/${fallbackPlaylistId}/tracks?limit=100`,
+//         {
+//           headers: {
+//             Authorization: `Bearer ${accessToken}`,
+//           },
+//         }
+//       );
 
-    res.json(selected);
-  } catch (err) {
-    console.error("Error fetching random playlist tracks:", err);
-    res.status(500).json({ error: "Failed to fetch tracks" });
-  }
-};
+//       const fallbackData = await fallbackRes.json();
+//       const fallbackWithPreview = fallbackData.items
+//         .map((item) => item.track)
+//         .filter((track) => track && track.preview_url)
+//         .map((track) => ({
+//           name: track.name,
+//           artist: track.artists.map((a) => a.name).join(", "),
+//           preview: track.preview_url,
+//           cover: track.album.images?.[0]?.url,
+//           spotifyUrl: track.external_urls?.spotify,
+//         }));
+
+//       // Merge and shuffle both lists
+//       const combinedTracks = [...tracksWithPreview, ...fallbackWithPreview]
+//         .sort(() => 0.5 - Math.random())
+//         .slice(0, 10);
+
+//       return res.json(combinedTracks);
+//     }
+
+//     // Otherwise: Shuffle and return 10 from main playlist
+//     const selected = tracksWithPreview
+//       .sort(() => 0.5 - Math.random())
+//       .slice(0, 10);
+
+//     res.json(selected);
+//   } catch (err) {
+//     console.error("Error fetching random playlist tracks:", err);
+//     res.status(500).json({ error: "Failed to fetch tracks" });
+//   }
+// };

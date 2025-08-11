@@ -6,7 +6,7 @@ const Nav = () => {
     <div className="flex items-center justify-between w-screen px-4  !lg:max-h-[10vh] py-4 shadow-[0_3px_10px_rgb(0,0,0,0.2)]">
       <div className="text-5xl font- font-bitcount">The MCG</div>
       <div className="flex flex-col lg:flex-row lg:mr-4 items-center gap-1 lg:gap-4 ">
-        <div className="hidden lg:flex">
+        <div className="flex">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -22,9 +22,9 @@ const Nav = () => {
             />
           </svg>
         </div>
-        <div className="flex lg:hidden">
+        {/* <div className="flex lg:hidden">
           <MusicPlayer />
-        </div>
+        </div> */}
 
         <div className="flex flex-col text-sm">
           <div>R3tr0LastKnight</div>

@@ -1,7 +1,5 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 
-const CollectionPage = () => {
-  return <div>CollectionPage</div>;
-};
+const CollectionPage = () => {};
 
 export default CollectionPage;

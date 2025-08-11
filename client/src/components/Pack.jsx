@@ -4,7 +4,7 @@ import { FastAverageColor } from "fast-average-color";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSwipeable } from "react-swipeable";
 
-const Pack = () => {
+const Pack = ({ pack, setPack }) => {
   const [albums, setAlbums] = useState([]);
   const [colors, setColors] = useState({});
   const [index, setIndex] = useState(0);
@@ -57,10 +57,13 @@ const Pack = () => {
     setDirection(-1);
     setIndex((prev) => (prev - 1 + total) % total);
   };
-
   const handlers = useSwipeable({
-    onSwipedLeft: handleNext,
-    onSwipedRight: handlePrev,
+    onSwipedLeft: () => {
+      if (!pack) handleNext();
+    },
+    onSwipedRight: () => {
+      if (!pack) handlePrev();
+    },
     preventScrollOnSwipe: true,
     trackMouse: true,
   });
@@ -102,6 +105,15 @@ const Pack = () => {
       },
     };
 
+    // ⬇ If a pack is selected and this is NOT center → make it fall
+    if (pack && position !== "center") {
+      posStyles[position] = {
+        ...posStyles[position],
+        animate: { y: 800, opacity: 0, scale: 0.9 },
+        transition: { duration: 0.5 },
+      };
+    }
+
     const current = posStyles[position];
 
     return (
@@ -116,18 +128,19 @@ const Pack = () => {
           zIndex: current.zIndex,
         }}
         initial={current.initial}
-        animate={{
-          x: current.x,
-          y: current.y,
-          scale: current.scale,
-          opacity: current.opacity,
-        }}
+        animate={
+          current.animate ?? {
+            x: current.x,
+            y: current.y,
+            scale: current.scale,
+            opacity: current.opacity,
+          }
+        }
         exit={current.exit}
-        transition={{ duration: 0.5 }}
+        transition={current.transition ?? { duration: 0.5 }}
         onClick={() => {
           if (position === "center") {
-            console.log("Clicked center pack:", album.album);
-            // perform action like routing or opening modal
+            setPack(album.album);
           }
         }}
       >
@@ -160,12 +173,29 @@ const Pack = () => {
       {...handlers}
       className="relative w-full h-full flex justify-center items-center overflow-hidden"
     >
-      <button
-        onClick={handleNext}
-        className="absolute left-4 text-4xl z-40 select-none bg-black/50 text-white p-2 rounded-full hover:bg-black"
-      >
-        &#x276E;
-      </button>
+      {!pack ? (
+        <button
+          onClick={handlePrev}
+          className="absolute left-4 text-4xl z-40 select-none bg-black/50 text-white p-2 rounded-full hover:bg-black"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="size-6"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="m18.75 4.5-7.5 7.5 7.5 7.5m-6-15L5.25 12l7.5 7.5"
+            />
+          </svg>
+        </button>
+      ) : (
+        <></>
+      )}
 
       <div className="relative flex justify-center items-center w-[900px] h-[500px]">
         {albums.length === 0 ? (
@@ -178,13 +208,29 @@ const Pack = () => {
           </AnimatePresence>
         )}
       </div>
-
-      <button
-        onClick={handlePrev}
-        className="absolute right-4 text-4xl z-40 select-none bg-black/50 text-white p-2 rounded-full hover:bg-black"
-      >
-        &#x276F;
-      </button>
+      {!pack ? (
+        <button
+          onClick={handleNext}
+          className="absolute right-4 text-4xl z-40 select-none bg-black/50 text-white p-2 rounded-full hover:bg-black"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="size-6"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="m5.25 4.5 7.5 7.5-7.5 7.5m6-15 7.5 7.5-7.5 7.5"
+            />
+          </svg>
+        </button>
+      ) : (
+        <></>
+      )}
     </div>
   );
 };

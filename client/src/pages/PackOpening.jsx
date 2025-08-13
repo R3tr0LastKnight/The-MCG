@@ -66,12 +66,12 @@ const PackOpening = (pack) => {
 
   return (
     <>
-      <button
+      {/* <button
         onClick={changeEffect}
         className="px-4 py-2 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600 z-10 absolute  left-4 "
       >
         Change Effect
-      </button>
+      </button> */}
       <div className="flex flex-col items-center justify-center absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 gap-4">
         {/* Card */}
 

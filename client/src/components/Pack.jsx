@@ -1,12 +1,24 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { fetchAllEnrichedAlbums } from "../api/spotify";
 import { FastAverageColor } from "fast-average-color";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSwipeable } from "react-swipeable";
+import html2canvas from "html2canvas";
 
-const Pack = ({ pack, setPack }) => {
+const Pack = ({
+  pack,
+  setPack,
+  colors,
+  setColors,
+  imgSrc,
+  setImgSrc,
+  handleCapture,
+  screenshotArea,
+  packData,
+  setPackData,
+}) => {
   const [albums, setAlbums] = useState([]);
-  const [colors, setColors] = useState({});
+
   const [index, setIndex] = useState(0);
   const [direction, setDirection] = useState(0); // 1=next, -1=prev
 
@@ -119,7 +131,7 @@ const Pack = ({ pack, setPack }) => {
     return (
       <motion.div
         key={albumIndex}
-        className={`flex flex-col h-[400px] w-[300px] rounded-lg justify-center items-center gap-4 shadow-[0_3px_10px_rgb(0,0,0,0.2)] absolute ${
+        className={` rounded-lg absolute ${
           position !== "center" ? "pointer-events-none" : "cursor-pointer"
         }`}
         style={{
@@ -138,31 +150,44 @@ const Pack = ({ pack, setPack }) => {
         }
         exit={current.exit}
         transition={current.transition ?? { duration: 0.5 }}
-        onClick={() => {
+        onClick={async () => {
           if (position === "center") {
             setPack(album.album);
+            if (position === "center") {
+              setPack(album.album);
+              setPackData((prev) => ({
+                ...prev,
+                bgColor: colorSet.bgColor,
+                textColor: colorSet.textColor,
+              }));
+            }
           }
         }}
       >
-        <div className="max-h-52 max-w-52 overflow-hidden">
-          <img
-            src={album.cover}
-            alt={`${album.album} cover`}
-            crossOrigin="anonymous"
-            className="rounded"
-          />
-        </div>
-        <div className="flex flex-col text-center">
-          <h1 className="text-3xl font-concent">{album.album}</h1>
-          <h2 className="text-lg font-libertinus">{album.artist}</h2>
-          <a
-            href={album.spotifyUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline mt-2 text-sm absolute bottom-1 right-3"
-          >
-            Open in Spotify
-          </a>
+        <div
+          ref={position === "center" ? screenshotArea : null}
+          className="flex flex-col h-[400px] w-[300px] rounded-lg justify-center items-center gap-4 shadow-[0_3px_10px_rgb(0,0,0,0.2)]"
+        >
+          <div className="max-h-52 max-w-52 overflow-hidden">
+            <img
+              src={album.cover}
+              alt={`${album.album} cover`}
+              crossOrigin="anonymous"
+              className="rounded"
+            />
+          </div>
+          <div className="flex flex-col text-center">
+            <h1 className="text-3xl font-concent px-2">{album.album}</h1>
+            <h2 className="text-lg font-libertinus">{album.artist}</h2>
+            <a
+              href={album.spotifyUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline mt-2 text-sm absolute bottom-1 right-3"
+            >
+              Open in Spotify
+            </a>
+          </div>
         </div>
       </motion.div>
     );

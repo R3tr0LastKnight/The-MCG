@@ -1,7 +1,93 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
+import Pack from "../components/Pack";
+import * as htmlToImage from "html-to-image";
 
 const PacksPage = () => {
-  return <div>PacksPage</div>;
+  const [pack, setPack] = useState("");
+  const [imgSrc, setImgSrc] = useState(null);
+  const [showPack, setShowPack] = useState(true);
+  const [colors, setColors] = useState({});
+  const [packData, setPackData] = useState({
+    bgColor: "",
+    textColor: "",
+    index: 0,
+  });
+  const screenshotArea = useRef(null);
+  useEffect(() => {
+    if (imgSrc) {
+      const timer = setTimeout(() => {
+        setShowPack(false);
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    } else {
+      setShowPack(true);
+    }
+  }, [imgSrc]);
+
+  const handleCapture = async () => {
+    if (!screenshotArea.current) {
+      console.error("Capture failed: element not found");
+      return;
+    }
+
+    try {
+      const style = getComputedStyle(screenshotArea.current);
+      const bgColor = packData.bgColor; // fallback to white
+
+      const dataUrl = await htmlToImage.toPng(screenshotArea.current, {
+        quality: 1,
+        backgroundColor: bgColor,
+      });
+
+      setImgSrc(dataUrl);
+    } catch (err) {
+      console.error("Capture failed:", err);
+    }
+  };
+
+  return (
+    <div className="transition ">
+      <div className="flex flex-col items-center justify-center absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white">
+        {showPack ? (
+          <div>
+            <Pack
+              pack={pack}
+              setPack={setPack}
+              imgSrc={imgSrc}
+              setImgSrc={setImgSrc}
+              handleCapture={handleCapture}
+              colors={colors}
+              setColors={setColors}
+              screenshotArea={screenshotArea}
+              packData={packData}
+              setPackData={setPackData}
+            />
+          </div>
+        ) : (
+          <div className="h-[400px] w-[300px] rounded-lg justify-center items-center gap-4 shadow-[0_3px_10px_rgb(0,0,0,0.2)] absolute">
+            <img className="rounded-lg" src={imgSrc} alt="Captured Pack" />
+          </div>
+        )}
+        {pack && showPack ? (
+          <div
+            style={{
+              backgroundColor: packData.bgColor,
+              color: packData.textColor,
+            }}
+            className={` px-4 py-1 text-lg rounded-lg cursor-pointer absolute bottom-0 transition`}
+            onClick={() => {
+              handleCapture();
+            }}
+          >
+            Open Pack
+          </div>
+        ) : (
+          <></>
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default PacksPage;

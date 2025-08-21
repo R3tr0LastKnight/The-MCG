@@ -14,6 +14,7 @@ module.exports = {
         meteor: "meteor 5s linear infinite",
         grid: "grid 15s linear infinite",
         marquee: "marquee 20s linear infinite",
+        flames: "flames 0.3s infinite", // 🔥 added flames animation
       },
       keyframes: {
         meteor: {
@@ -31,6 +32,16 @@ module.exports = {
         marquee: {
           "0%": { transform: "translateX(0%)" },
           "100%": { transform: "translateX(-50%)" },
+        },
+        flames: {
+          "0%, 100%": {
+            opacity: "0.8",
+            transform: "translateY(0) scale(1)",
+          },
+          "50%": {
+            opacity: "1",
+            transform: "translateY(-10%) scale(1.05)",
+          },
         },
       },
     },

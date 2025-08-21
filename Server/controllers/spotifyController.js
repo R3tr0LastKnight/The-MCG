@@ -236,3 +236,82 @@ exports.handleSpotifyCallback = async (req, res) => {
 //     res.status(500).json({ error: "Failed to fetch tracks" });
 //   }
 // };
+
+exports.getRandomTrackFromAlbum = async (req, res) => {
+  try {
+    const { albumName, artistName } = req.query;
+
+    if (!albumName) {
+      return res.status(400).json({ error: "Album name is required" });
+    }
+    if (!artistName) {
+      return res.status(400).json({ error: "Artist name is required" });
+    }
+
+    // 1. Get valid token
+    const token = await getValidSpotifyAccessToken();
+
+    // 2. Search album by both album + artist
+    const query = `album:${albumName} artist:${artistName}`;
+    const searchUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent(
+      query
+    )}&type=album&limit=5`;
+
+    const searchRes = await fetch(searchUrl, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const searchData = await searchRes.json();
+
+    // Try exact album + artist match
+    const album =
+      searchData.albums?.items?.find(
+        (a) =>
+          a.name.toLowerCase() === albumName.toLowerCase() &&
+          a.artists.some(
+            (art) => art.name.toLowerCase() === artistName.toLowerCase()
+          )
+      ) || searchData.albums?.items?.[0]; // fallback: first match
+
+    if (!album) {
+      return res.status(404).json({ error: "Album not found" });
+    }
+
+    // 3. Fetch tracks
+    const tracksUrl = `https://api.spotify.com/v1/albums/${album.id}/tracks?limit=50`;
+    const tracksRes = await fetch(tracksUrl, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const tracksData = await tracksRes.json();
+    const tracks = tracksData.items || [];
+
+    if (!tracks.length) {
+      return res.status(404).json({ error: "No tracks found in album" });
+    }
+
+    // 4. Pick random track
+    const randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
+
+    // 5. Respond
+    res.json({
+      album: {
+        id: album.id,
+        name: album.name,
+        artist: album.artists.map((a) => a.name).join(", "),
+        image: album.images[0]?.url,
+        spotifyUrl: album.external_urls.spotify,
+      },
+      track: {
+        id: randomTrack.id,
+        name: randomTrack.name,
+        preview_url: randomTrack.preview_url,
+        external_url: randomTrack.external_urls.spotify,
+        duration_ms: randomTrack.duration_ms,
+      },
+    });
+  } catch (err) {
+    console.error("Error fetching random track:", err);
+    res.status(500).json({ error: "Failed to fetch random track" });
+  }
+};

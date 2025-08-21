@@ -6,7 +6,9 @@ const { handleSpotifyCallback } = require("../controllers/spotifyController");
 // const {
 //   fetchRandomPlaylistTracks,
 // } = require("../controllers/spotifyController");
+const { getRandomTrackFromAlbum } = require("../controllers/spotifyController");
 
+router.get("/random-tracks", getRandomTrackFromAlbum);
 // router.get("/random-tracks", fetchRandomPlaylistTracks);
 router.get("/callback", handleSpotifyCallback);
 router.get("/album", getAlbumByName);

@@ -152,15 +152,12 @@ const Pack = ({
         transition={current.transition ?? { duration: 0.5 }}
         onClick={async () => {
           if (position === "center") {
-            setPack(album.album);
-            if (position === "center") {
-              setPack(album.album);
-              setPackData((prev) => ({
-                ...prev,
-                bgColor: colorSet.bgColor,
-                textColor: colorSet.textColor,
-              }));
-            }
+            setPack({ album: album.album, artist: album.artist });
+            setPackData((prev) => ({
+              ...prev,
+              bgColor: colorSet.bgColor,
+              textColor: colorSet.textColor,
+            }));
           }
         }}
       >

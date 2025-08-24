@@ -1,6 +1,7 @@
 import React, { useRef } from "react";
 import Spline from "@splinetool/react-spline";
 import currents from "../assets/smithreens.png";
+// import LiquidChrome from "../components/ui/LiquidChrome";
 
 export default function CollectionPage() {
   function onLoad(spline) {
@@ -40,10 +41,18 @@ export default function CollectionPage() {
 
   return (
     <div className="flex flex-col items-center justify-center absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 h-full w-full bg-transparent">
-      <Spline
+      {/* <Spline
         onLoad={onLoad}
         scene="https://prod.spline.design/rk-C7m1QaS3KqIim/scene.splinecode"
       />
+      <div style={{ width: "100%", height: "600px", position: "relative" }}>
+        <LiquidChrome
+          baseColor={[0.1, 0.1, 0.1]}
+          speed={1}
+          amplitude={0.6}
+          interactive={false}
+        />
+      </div> */}
     </div>
   );
 }

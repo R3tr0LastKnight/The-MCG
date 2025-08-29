@@ -14,7 +14,7 @@ module.exports = {
         meteor: "meteor 5s linear infinite",
         grid: "grid 15s linear infinite",
         marquee: "marquee 20s linear infinite",
-        flames: "flames 0.3s infinite", // 🔥 added flames animation
+        flames: "flames 0.3s infinite",
       },
       keyframes: {
         meteor: {

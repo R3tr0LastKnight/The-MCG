@@ -11,6 +11,7 @@ const PacksPage = () => {
   const [colors, setColors] = useState({});
   const [burned, setBurned] = useState(false);
   const [getCard, setGetCard] = useState(false);
+  const [showChoose, setShowChoose] = useState(false);
   const [packData, setPackData] = useState({
     bgColor: "",
     textColor: "",
@@ -89,7 +90,12 @@ const PacksPage = () => {
               />
             </motion.div>
             <div className="absolute z-10">
-              <Card pack={pack} getCard={getCard} imgSrc={imgSrc} />
+              <Card
+                pack={pack}
+                getCard={getCard}
+                imgSrc={imgSrc}
+                setShowChoose={setShowChoose}
+              />
             </div>
           </>
         )}
@@ -110,6 +116,23 @@ const PacksPage = () => {
           <></>
         )}
       </div>
+      {showChoose ? (
+        <>
+          <div className="absolute left-1/2  transform -translate-x-1/2 bottom-0  lg:left-[70%] lg:top-32 lg:translate-x-0 flex gap-2 flex-col ">
+            <h1 className="font-concent hidden lg:flex lg:text-6xl">CHOOSE</h1>
+            <div className="flex lg:flex-col gap-2">
+              <div className=" border py-2 px-3 rounded bg-white hover:text-white hover:bg-black">
+                KEEP
+              </div>
+              <div className=" border py-2 px-3 rounded bg-white hover:text-white hover:bg-black">
+                DISCARD
+              </div>
+            </div>
+          </div>
+        </>
+      ) : (
+        <></>
+      )}
     </div>
   );
 };

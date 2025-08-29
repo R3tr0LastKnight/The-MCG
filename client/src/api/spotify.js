@@ -46,3 +46,19 @@ export async function fetchRandomTrack({ album, artist }, options = {}) {
 
   return data;
 }
+
+export async function saveCard(uid, cardData, options = {}) {
+  const url = `${process.env.REACT_APP_BACKEND_URL}/api/users/add-card`;
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ uid, cardData }),
+    ...options, // allow override (e.g. headers, signal)
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to save card");
+
+  return data;
+}

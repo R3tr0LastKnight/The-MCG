@@ -1,13 +1,17 @@
-import React, { useEffect, useRef, useState, useMemo } from "react";
+import React, { useEffect, useRef, useState, useMemo, Suspense } from "react";
 import { FastAverageColor } from "fast-average-color";
 import { fetchRandomTrack } from "../api/spotify";
-import LiquidChrome from "./ui/LiquidChrome";
-import Iridescence from "./ui/Iridescence";
-import FaultyTerminal from "./ui/FaultyTerminal";
-import Dither from "./ui/Dither";
-import Silk from "./ui/Silk";
+import { auth } from "../firebase";
+import { saveCard } from "../api/spotify";
 
-const Card = ({ pack, getCard }) => {
+// ✅ Lazy load heavy shader components
+const LiquidChrome = React.lazy(() => import("./ui/LiquidChrome"));
+const Iridescence = React.lazy(() => import("./ui/Iridescence"));
+const FaultyTerminal = React.lazy(() => import("./ui/FaultyTerminal"));
+const Dither = React.lazy(() => import("./ui/Dither"));
+const Silk = React.lazy(() => import("./ui/Silk"));
+
+const Card = ({ pack, getCard, setShowChoose }) => {
   const [colors, setColors] = useState({
     bgColor: "black",
     textColor: "white",
@@ -20,6 +24,7 @@ const Card = ({ pack, getCard }) => {
     waveColor: [0.5, 0.5, 0.5], // default fallback
     baseColor: [0.1, 0.1, 0.1], // default fallback
   });
+  const [cardData, setCardData] = useState({});
 
   // Fetch random track
   useEffect(() => {
@@ -34,6 +39,7 @@ const Card = ({ pack, getCard }) => {
           signal: controller.signal,
         });
         setTrack(data);
+        console.log(cardData);
       } catch (err) {
         if (err.name !== "AbortError") {
           console.error("Failed to fetch random track:", err.message);
@@ -59,13 +65,12 @@ const Card = ({ pack, getCard }) => {
 
       // ✅ Convert to normalized [0..1] range for shader usage
       if (color.value && Array.isArray(color.value)) {
-        // fac.value is usually [r,g,b,a]
         const [r, g, b] = color.value;
         const normalized = [(r ?? 0) / 255, (g ?? 0) / 255, (b ?? 0) / 255];
 
         setShaderColors({
-          waveColor: normalized, // e.g. [0.5, 0.5, 0.5]
-          baseColor: normalized, // another variable you can use elsewhere
+          waveColor: normalized,
+          baseColor: normalized,
         });
       }
     } catch (e) {
@@ -73,57 +78,58 @@ const Card = ({ pack, getCard }) => {
     }
   };
 
-  // Randomization stuff stays the same
+  // Randomization stuff
   const CardRandomization = () => {
     const borderColors = [
-      { class: "bg-gray-300", chance: 15 },
-      { class: "bg-black ", chance: 20 },
-      { class: "bg-white", chance: 15 },
-      { class: "bg-gray-500", chance: 15 },
-      { class: "holo-effect", chance: 5 },
+      { class: "bg-gray-300", chance: 15, bgSubId: 1 },
+      { class: "bg-black ", chance: 20, bgSubId: 2 },
+      { class: "bg-white", chance: 15, bgSubId: 3 },
+      { class: "bg-gray-500", chance: 15, bgSubId: 4 },
+      { class: "holo-effect", chance: 5, bgSubId: 5 },
       {
         class: "bg-gradient-to-tr from-gray-200 via-gray-50 to-gray-400",
         chance: 10,
+        bgSubId: 6,
       },
       {
         class:
           "bg-[conic-gradient(at_top_left,_#ff00ff,_#00ffff,_#ffff00,_#ff00ff)]",
         chance: 10,
+        bgSubId: 7,
       },
       {
         class:
           "bg-[linear-gradient(135deg,_#ff9ff3,_#feca57,_#48dbfb,_#1dd1a1,_#5f27cd,_#ff9ff3)] bg-[length:200%_200%] animate-gradient",
         chance: 10,
+        bgSubId: 8,
       },
     ];
 
     const effects = [
-      { class: "", chance: 100 },
-      { class: "shiny-effect", chance: 0 },
-      { class: "negative-effect", chance: 0 },
+      { class: "", chance: 95, effectId: 1 },
+      { class: "shiny-effect", chance: 0, effectId: 2 },
+      { class: "negative-effect", chance: 5, effectId: 3 },
     ];
 
     const pickRandomWeighted = (list) => {
       const total = list.reduce((sum, item) => sum + item.chance, 0);
       let rand = Math.random() * total;
       for (let item of list) {
-        if (rand < item.chance) return item.class;
+        if (rand < item.chance) return item;
         rand -= item.chance;
       }
-      return list[list.length - 1].class;
+      return list[list.length - 1];
     };
 
     return {
-      borderClass: pickRandomWeighted(borderColors),
-      effectClass: pickRandomWeighted(effects),
+      ...pickRandomWeighted(borderColors),
+      ...pickRandomWeighted(effects),
     };
   };
 
+  // pick between shaders
   const pickBorder = () => {
-    // Assign weights (chances) to each number
     const weights = [0.6, 0.1, 0.1, 0.1, 0.1];
-    // (sum must be 1, here: 50%, 20%, 15%, 10%, 5%)
-
     const rnd = Math.random();
     let acc = 0;
 
@@ -140,9 +146,36 @@ const Card = ({ pack, getCard }) => {
     pickBorder();
   }, []);
 
-  const [{ borderClass, effectClass }] = useState(CardRandomization);
+  // Randomization state
+  const [{ borderClass, effectClass, bgSubId, effectId }] =
+    useState(CardRandomization);
 
-  // ✅ Memoize background so it doesn’t remount on every render
+  // ✅ Save everything into cardData
+  useEffect(() => {
+    if (track) {
+      const data = {
+        trackId: track.track.id,
+        albumId: track.album.id,
+        border,
+        bgSubId,
+        effectId,
+      };
+      setCardData(data);
+      setShowChoose(true);
+      console.log("card data:", data);
+    }
+  }, [track, border, borderClass, effectClass, bgSubId, effectId]);
+
+  const pushCard = async () => {
+    try {
+      const result = await saveCard(auth.currentUser?.uid, cardData);
+      console.log("Saved card:", result);
+    } catch (err) {
+      console.error("Error saving card:", err);
+    }
+  };
+
+  // ✅ Memoize + lazy load backgrounds
   const background = useMemo(() => {
     if (border === 1) return null;
     if (border === 2) {
@@ -179,7 +212,6 @@ const Card = ({ pack, getCard }) => {
         />
       );
     }
-
     if (border === 5) {
       return (
         <Silk
@@ -192,7 +224,7 @@ const Card = ({ pack, getCard }) => {
       );
     }
     return null;
-  }, [border]);
+  }, [border, shaderColors]);
 
   const InnerCard = () => {
     return (
@@ -232,7 +264,8 @@ const Card = ({ pack, getCard }) => {
         <div
           className={`absolute inset-0 -z-10 pointer-events-none ${borderClass} ${effectClass}`}
         >
-          {background}
+          {/* ✅ Suspense wrapper for lazy shaders */}
+          <Suspense fallback={null}>{background}</Suspense>
         </div>
 
         <div

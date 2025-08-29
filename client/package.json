@@ -16,7 +16,7 @@
     "clsx": "^2.1.1",
     "color-thief-browser": "^2.0.2",
     "fast-average-color": "^9.5.0",
-    "firebase": "^12.0.0",
+    "firebase": "^12.2.1",
     "framer-motion": "^12.23.6",
     "html-to-image": "^1.11.13",
     "html-to-img": "^1.1.1",

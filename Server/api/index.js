@@ -8,10 +8,15 @@ dotenv.config();
 app.use(cors());
 app.use(express.json());
 
-// Route
+// ==================  Spotify Routes ==================
 const spotifyRoutes = require("../routes/spotify");
 app.use("/api/spotify", spotifyRoutes);
 
+// ==================  User Routes ==================
+const userRoutes = require("../routes/userRoute");
+app.use("/api/users", userRoutes);
+
+// Root route
 app.get("/", (req, res) => {
   res.send("Welcome to The MCG backend");
 });

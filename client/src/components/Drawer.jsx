@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
+import { signOut } from "firebase/auth";
+import { auth } from "../firebase";
 
 const Drawer = ({ page, setPage }) => {
   const [isDrawOpen, setIsDrawOpen] = useState(false);
@@ -32,6 +34,22 @@ const Drawer = ({ page, setPage }) => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isDrawOpen]);
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      localStorage.removeItem("user");
+      window.location.href = "/";
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (page === "logout") {
+      handleLogout();
+    }
+  }, [page]);
 
   return (
     <motion.div

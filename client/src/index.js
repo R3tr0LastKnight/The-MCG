@@ -7,16 +7,14 @@ import { BrowserRouter } from "react-router-dom";
 // import { GoogleOAuthProvider } from "@react-oauth/google";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { UserProvider } from "./utils/userContext";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <BrowserRouter>
-    {/* <AuthProvider>
-      <GoogleOAuthProvider clientId="11348802405-f8mp3d9tbf5f839mh7qf1k6oo9csec36.apps.googleusercontent.com">
-       
-      </GoogleOAuthProvider>
-    </AuthProvider> */}{" "}
     <ToastContainer theme="dark" autoClose={900} />
-    <App />
+    <UserProvider>
+      <App />
+    </UserProvider>
   </BrowserRouter>
 );

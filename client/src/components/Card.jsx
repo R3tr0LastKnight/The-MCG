@@ -11,7 +11,7 @@ const FaultyTerminal = React.lazy(() => import("./ui/FaultyTerminal"));
 const Dither = React.lazy(() => import("./ui/Dither"));
 const Silk = React.lazy(() => import("./ui/Silk"));
 
-const Card = ({ pack, getCard, setShowChoose }) => {
+const Card = ({ pack, setTempTrack, setShowChoose, keep, setKeep, setExp }) => {
   const [colors, setColors] = useState({
     bgColor: "black",
     textColor: "white",
@@ -25,6 +25,7 @@ const Card = ({ pack, getCard, setShowChoose }) => {
     baseColor: [0.1, 0.1, 0.1], // default fallback
   });
   const [cardData, setCardData] = useState({});
+  const [borderXp, setBorderXp] = useState(0);
 
   // Fetch random track
   useEffect(() => {
@@ -39,6 +40,7 @@ const Card = ({ pack, getCard, setShowChoose }) => {
           signal: controller.signal,
         });
         setTrack(data);
+        setTempTrack(data);
         console.log(cardData);
       } catch (err) {
         if (err.name !== "AbortError") {
@@ -81,34 +83,37 @@ const Card = ({ pack, getCard, setShowChoose }) => {
   // Randomization stuff
   const CardRandomization = () => {
     const borderColors = [
-      { class: "bg-gray-300", chance: 15, bgSubId: 1 },
-      { class: "bg-black ", chance: 20, bgSubId: 2 },
-      { class: "bg-white", chance: 15, bgSubId: 3 },
-      { class: "bg-gray-500", chance: 15, bgSubId: 4 },
-      { class: "holo-effect", chance: 5, bgSubId: 5 },
+      { class: "bg-gray-300", chance: 15, bgSubId: 1, bxp: 10 },
+      { class: "bg-black ", chance: 20, bgSubId: 2, bxp: 15 },
+      { class: "bg-white", chance: 15, bgSubId: 3, bxp: 5 },
+      { class: "bg-gray-500", chance: 15, bgSubId: 4, bxp: 5 },
+      { class: "holo-effect", chance: 5, bgSubId: 5, bxp: 20 },
       {
         class: "bg-gradient-to-tr from-gray-200 via-gray-50 to-gray-400",
         chance: 10,
         bgSubId: 6,
+        bxp: 15,
       },
       {
         class:
           "bg-[conic-gradient(at_top_left,_#ff00ff,_#00ffff,_#ffff00,_#ff00ff)]",
         chance: 10,
         bgSubId: 7,
+        bxp: 15,
       },
       {
         class:
           "bg-[linear-gradient(135deg,_#ff9ff3,_#feca57,_#48dbfb,_#1dd1a1,_#5f27cd,_#ff9ff3)] bg-[length:200%_200%] animate-gradient",
         chance: 10,
         bgSubId: 8,
+        bxp: 15,
       },
     ];
 
     const effects = [
-      { class: "", chance: 95, effectId: 1 },
+      { class: "", chance: 95, effectId: 1, exp: 10 },
       { class: "shiny-effect", chance: 0, effectId: 2 },
-      { class: "negative-effect", chance: 5, effectId: 3 },
+      { class: "negative-effect", chance: 5, effectId: 3, exp: 25 },
     ];
 
     const pickRandomWeighted = (list) => {
@@ -147,7 +152,7 @@ const Card = ({ pack, getCard, setShowChoose }) => {
   }, []);
 
   // Randomization state
-  const [{ borderClass, effectClass, bgSubId, effectId }] =
+  const [{ borderClass, effectClass, bgSubId, effectId, exp, bxp }] =
     useState(CardRandomization);
 
   // ✅ Save everything into cardData
@@ -161,24 +166,37 @@ const Card = ({ pack, getCard, setShowChoose }) => {
         effectId,
       };
       setCardData(data);
+      console.log("exp:", borderXp + exp + bxp + track?.track.popularity / 2);
+      console.log("pop:", track?.track.popularity);
+
+      setExp(borderXp + exp + bxp + track?.track.popularity / 2);
       setShowChoose(true);
       console.log("card data:", data);
     }
   }, [track, border, borderClass, effectClass, bgSubId, effectId]);
 
-  const pushCard = async () => {
-    try {
-      const result = await saveCard(auth.currentUser?.uid, cardData);
-      console.log("Saved card:", result);
-    } catch (err) {
-      console.error("Error saving card:", err);
+  useEffect(() => {
+    if (keep === 1) {
+      const pushCard = async () => {
+        try {
+          const result = await saveCard(auth.currentUser?.uid, cardData);
+          setShowChoose(false);
+          setKeep(2);
+          console.log("Saved card:", result);
+        } catch (err) {
+          console.error("Error saving card:", err);
+        }
+      };
+
+      pushCard();
     }
-  };
+  }, [keep]);
 
   // ✅ Memoize + lazy load backgrounds
   const background = useMemo(() => {
     if (border === 1) return null;
     if (border === 2) {
+      setBorderXp(30);
       return (
         <LiquidChrome
           baseColor={shaderColors.waveColor}
@@ -189,6 +207,7 @@ const Card = ({ pack, getCard, setShowChoose }) => {
       );
     }
     if (border === 3) {
+      setBorderXp(25);
       return (
         <Iridescence
           color={shaderColors.waveColor}
@@ -199,6 +218,7 @@ const Card = ({ pack, getCard, setShowChoose }) => {
       );
     }
     if (border === 4) {
+      setBorderXp(20);
       return (
         <Dither
           waveColor={shaderColors.waveColor}
@@ -213,6 +233,7 @@ const Card = ({ pack, getCard, setShowChoose }) => {
       );
     }
     if (border === 5) {
+      setBorderXp(15);
       return (
         <Silk
           speed={5}

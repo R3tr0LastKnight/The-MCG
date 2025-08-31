@@ -51,3 +51,39 @@ exports.addCard = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+exports.addExp = async (req, res) => {
+  try {
+    const { uid, gainedExp } = req.body;
+
+    if (!uid || !gainedExp) {
+      return res.status(400).json({ error: "uid and gainedExp are required" });
+    }
+
+    // Find user by uid
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Add exp
+    user.exp += gainedExp;
+
+    // Handle level up logic (every 1000 exp = +1 level)
+    while (user.exp >= 1000) {
+      user.level += 1;
+      user.exp -= 1000; // carry over remaining exp
+    }
+
+    await user.save();
+
+    res.status(200).json({
+      message: "EXP updated successfully",
+      level: user.level,
+      exp: user.exp,
+    });
+  } catch (err) {
+    console.error("Error updating EXP:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+};

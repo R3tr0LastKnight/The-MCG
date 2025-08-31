@@ -293,6 +293,13 @@ exports.getRandomTrackFromAlbum = async (req, res) => {
     // 4. Pick random track
     const randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
 
+    // 4.5 Fetch full track details (to get popularity)
+    const trackUrl = `https://api.spotify.com/v1/tracks/${randomTrack.id}`;
+    const trackRes = await fetch(trackUrl, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const fullTrack = await trackRes.json();
+
     // 5. Respond
     res.json({
       album: {
@@ -303,11 +310,12 @@ exports.getRandomTrackFromAlbum = async (req, res) => {
         spotifyUrl: album.external_urls.spotify,
       },
       track: {
-        id: randomTrack.id,
-        name: randomTrack.name,
-        preview_url: randomTrack.preview_url,
-        external_url: randomTrack.external_urls.spotify,
-        duration_ms: randomTrack.duration_ms,
+        id: fullTrack.id,
+        name: fullTrack.name,
+        preview_url: fullTrack.preview_url,
+        external_url: fullTrack.external_urls.spotify,
+        duration_ms: fullTrack.duration_ms,
+        popularity: fullTrack.popularity,
       },
     });
   } catch (err) {

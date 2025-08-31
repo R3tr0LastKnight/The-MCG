@@ -3,6 +3,10 @@ import Pack from "../components/Pack";
 import * as htmlToImage from "html-to-image";
 import { motion } from "framer-motion";
 import Card from "../components/Card";
+import { Progress } from "../components/ui/Progress.tsx";
+import { addExp } from "../api/spotify";
+import { auth } from "../firebase";
+import { useUser } from "../utils/userContext";
 
 const PacksPage = () => {
   const [pack, setPack] = useState("");
@@ -17,6 +21,13 @@ const PacksPage = () => {
     textColor: "",
     index: 0,
   });
+  const [keep, setKeep] = useState(null);
+  const [exp, setExp] = useState(0);
+  const [progress, setProgress] = useState(0); // percentage for bar
+  const [userLevel, setUserLevel] = useState(1);
+  const [oldExp, setOldExp] = useState(0);
+  const { user, setUser } = useUser();
+  const [tempTrack, setTempTrack] = useState();
 
   const screenshotArea = useRef(null);
   useEffect(() => {
@@ -51,6 +62,43 @@ const PacksPage = () => {
       console.error("Capture failed:", err);
     }
   };
+
+  useEffect(() => {
+    if (keep === 2) {
+      async function addFinalExp() {
+        try {
+          const gainedExp = exp;
+          console.log("sent xp: ", exp);
+
+          const result = await addExp(auth.currentUser?.uid, gainedExp);
+
+          const updatedUser = { ...user, level: result.level, exp: result.exp };
+          localStorage.setItem("user", JSON.stringify(updatedUser));
+          setUser(updatedUser);
+
+          setUserLevel(result.level);
+
+          // Calculate old vs new percentages
+          const oldPercent = (oldExp / 1000) * 100;
+          const newPercent = (result.exp / 1000) * 100;
+
+          // Animate smoothly: start from old, then go to new
+          setProgress(oldPercent);
+          setTimeout(() => {
+            setProgress(newPercent);
+          }, 200);
+          console.log("temp:", tempTrack);
+
+          // Save latest exp for next time
+          setOldExp(result.exp);
+        } catch (err) {
+          console.error(err.message);
+        }
+      }
+
+      addFinalExp();
+    }
+  }, [keep]);
 
   useEffect(() => {
     setGetCard(!getCard);
@@ -95,6 +143,10 @@ const PacksPage = () => {
                 getCard={getCard}
                 imgSrc={imgSrc}
                 setShowChoose={setShowChoose}
+                keep={keep}
+                setKeep={setKeep}
+                setExp={setExp}
+                setTempTrack={setTempTrack}
               />
             </div>
           </>
@@ -121,13 +173,76 @@ const PacksPage = () => {
           <div className="absolute left-1/2  transform -translate-x-1/2 bottom-0  lg:left-[70%] lg:top-32 lg:translate-x-0 flex gap-2 flex-col ">
             <h1 className="font-concent hidden lg:flex lg:text-6xl">CHOOSE</h1>
             <div className="flex lg:flex-col gap-2">
-              <div className=" border py-2 px-3 rounded bg-white hover:text-white hover:bg-black">
+              <div
+                onClick={() => {
+                  setKeep(1);
+                }}
+                className=" border py-2 px-3 rounded bg-white hover:text-white hover:bg-black"
+              >
                 KEEP
               </div>
-              <div className=" border py-2 px-3 rounded bg-white hover:text-white hover:bg-black">
+              <div
+                onClick={() => {
+                  window.location.reload();
+                }}
+                className=" border py-2 px-3 rounded bg-white hover:text-white hover:bg-black"
+              >
                 DISCARD
               </div>
             </div>
+          </div>
+        </>
+      ) : (
+        <></>
+      )}
+      {keep === 2 ? (
+        <>
+          <div className="absolute left-1/2  transform -translate-x-1/2 bottom-0  lg:left-[70%] lg:top-32 lg:translate-x-0 flex gap-2 flex-col ">
+            <h1 className="font-concent hidden lg:flex lg:text-6xl">
+              XP Gained
+            </h1>
+            <div className="flex lg:flex-col gap-2">
+              <div className="flex lg:flex-col gap-2">
+                <div className="text-sm font-semibold grid grid-cols-1">
+                  <div>ablum : {tempTrack?.album.name}</div>
+                  <div>artist : {tempTrack?.album.artist}</div>
+                  <div>track : {tempTrack?.track.name} </div>
+                  <div>popularity : {tempTrack?.track.popularity} </div>
+                  <div>xp : {exp} </div>
+                </div>
+
+                <div className="text-lg font-semibold">Level {userLevel}</div>
+                <Progress
+                  value={progress}
+                  className="bg-white border [&>div]:bg-black transition-all duration-1000 ease-out"
+                />
+
+                <div className="text-sm text-gray-600">
+                  {Math.round(progress)}% to next level
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            onClick={() => {
+              window.location.reload();
+            }}
+            className="absolute top-10 right-10 cursor-pointer"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="size-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6 18 18 6M6 6l12 12"
+              />
+            </svg>
           </div>
         </>
       ) : (

@@ -62,3 +62,19 @@ export async function saveCard(uid, cardData, options = {}) {
 
   return data;
 }
+
+export async function addExp(uid, gainedExp) {
+  const res = await fetch(
+    `${process.env.REACT_APP_BACKEND_URL}/api/users/add-exp`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ uid, gainedExp }),
+    }
+  );
+
+  const data = await res.json();
+
+  if (!res.ok) throw new Error(data.error || "Failed to update EXP");
+  return data; // contains { message, level, exp }
+}

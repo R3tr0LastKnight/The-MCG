@@ -39,7 +39,7 @@ const Pack = ({
     albums.forEach((album, i) => {
       const img = new Image();
       img.crossOrigin = "anonymous";
-      img.src = album.cover;
+      img.src = album?.cover;
       img.onload = async () => {
         try {
           const color = await fac.getColorAsync(img);
@@ -167,17 +167,17 @@ const Pack = ({
         >
           <div className="max-h-52 max-w-52 overflow-hidden">
             <img
-              src={album.cover}
+              src={album?.cover}
               alt={`${album.album} cover`}
               crossOrigin="anonymous"
               className="rounded"
             />
           </div>
           <div className="flex flex-col text-center">
-            <h1 className="text-3xl font-concent px-2">{album.album}</h1>
-            <h2 className="text-lg font-libertinus">{album.artist}</h2>
+            <h1 className="text-3xl font-concent px-2">{album?.album}</h1>
+            <h2 className="text-lg font-libertinus">{album?.artist}</h2>
             <a
-              href={album.spotifyUrl}
+              href={album?.spotifyUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="underline mt-2 text-sm absolute bottom-1 right-3"

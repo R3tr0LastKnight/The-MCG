@@ -9,9 +9,9 @@ const { handleSpotifyCallback } = require("../controllers/spotifyController");
 const { getRandomTrackFromAlbum } = require("../controllers/spotifyController");
 
 router.get("/random-tracks", getRandomTrackFromAlbum);
-// router.get("/random-tracks", fetchRandomPlaylistTracks);
 router.get("/callback", handleSpotifyCallback);
 router.get("/album", getAlbumByName);
 router.get("/albums/fetch-all", fetchAndEnrichAllAlbums);
+// router.get("/random-tracks", fetchRandomPlaylistTracks);
 
 module.exports = router;

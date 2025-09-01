@@ -1,4 +1,5 @@
 const User = require("../models/userModel");
+const { getValidSpotifyAccessToken } = require("../utils/spotifyAuth");
 
 // Google Login Controller
 exports.googleLogin = async (req, res) => {
@@ -85,5 +86,44 @@ exports.addExp = async (req, res) => {
   } catch (err) {
     console.error("Error updating EXP:", err);
     res.status(500).json({ error: "Server error" });
+  }
+};
+
+exports.fetchUserAlbums = async (req, res) => {
+  try {
+    const { uid } = req.query;
+    if (!uid) return res.status(400).json({ error: "uid required" });
+
+    const user = await User.findOne({ uid });
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const accessToken = await getValidSpotifyAccessToken();
+
+    // reverse cards so latest comes first
+    const enrichedCards = await Promise.all(
+      user.cards
+        .slice() // copy
+        .reverse()
+        .map(async (card) => {
+          const trackRes = await fetch(
+            `https://api.spotify.com/v1/tracks/${card.trackId}`,
+            { headers: { Authorization: `Bearer ${accessToken}` } }
+          );
+          const track = await trackRes.json();
+
+          const albumRes = await fetch(
+            `https://api.spotify.com/v1/albums/${card.albumId}`,
+            { headers: { Authorization: `Bearer ${accessToken}` } }
+          );
+          const album = await albumRes.json();
+
+          return { ...card.toObject(), track, album };
+        })
+    );
+
+    res.json(enrichedCards);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch user albums" });
   }
 };

@@ -29,7 +29,7 @@ const IndexPage = () => {
         <PacksPage />
       ) : page === "collection" ? (
         <>
-          <CollectionPage />
+          <CollectionPage page={page} />
         </>
       ) : page === "packs" ? (
         <>

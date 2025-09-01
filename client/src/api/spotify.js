@@ -78,3 +78,14 @@ export async function addExp(uid, gainedExp) {
   if (!res.ok) throw new Error(data.error || "Failed to update EXP");
   return data; // contains { message, level, exp }
 }
+
+export async function fetchUserEnrichedCards(uid, options = {}) {
+  const url = `${process.env.REACT_APP_BACKEND_URL}/api/users/albums/fetch-user?uid=${uid}`;
+
+  const res = await fetch(url, options);
+  const data = await res.json();
+
+  if (!res.ok) throw new Error(data.error || "Failed to fetch user cards");
+
+  return data;
+}

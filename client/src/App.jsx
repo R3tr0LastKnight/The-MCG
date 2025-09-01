@@ -16,7 +16,7 @@ const IndexPage = lazy(() => import("./pages/IndexPage"));
 function App() {
   // const { isAdmin } = useAuth();
   return (
-    <div className=" overflow-hidden select-none font-libertinus">
+    <div className="overflow-x-hidden select-none font-libertinus">
       <Suspense
         fallback={
           <>

@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "../firebase";
 import { isLoggedIn } from "../utils/auth";
 import { Progress } from "./ui/Progress.tsx";
+import {
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+} from "firebase/auth";
 
 const Nav = () => {
   const [login, setLogin] = useState(isLoggedIn());
@@ -21,7 +25,18 @@ const Nav = () => {
 
   const handleGoogleLogin = async () => {
     try {
-      const result = await signInWithPopup(auth, googleProvider);
+      let result;
+
+      // 1. Try popup first (works on desktop)
+      try {
+        result = await signInWithPopup(auth, googleProvider);
+      } catch (popupError) {
+        console.warn("Popup failed, falling back to redirect:", popupError);
+        await signInWithRedirect(auth, googleProvider);
+        return; // redirect will reload the page, so stop here
+      }
+
+      // 2. Get user info (popup success case)
       const user = result.user;
 
       const userData = {
@@ -52,6 +67,39 @@ const Nav = () => {
       console.error("Google login error:", err);
     }
   };
+
+  // 🔹 After page reload (in App.js or a top-level component):
+  useEffect(() => {
+    getRedirectResult(auth).then(async (result) => {
+      if (result) {
+        const user = result.user;
+        const userData = {
+          name: user.displayName,
+          email: user.email,
+          photo: user.photoURL,
+          uid: user.uid,
+        };
+
+        const res = await fetch(
+          "https://myspotifymcgtestretro.loca.lt/api/users/google-login",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(userData),
+          }
+        );
+
+        const data = await res.json();
+
+        if (data.success) {
+          localStorage.setItem("user", JSON.stringify(data.user));
+          setUser(data.user);
+          setLogin(true);
+          console.log("Redirect login success:", data.user);
+        }
+      }
+    });
+  }, []);
 
   return (
     <div className="flex items-center justify-between w-screen px-4 !lg:max-h-[10vh] py-4 shadow-[0_3px_10px_rgb(0,0,0,0.2)]">

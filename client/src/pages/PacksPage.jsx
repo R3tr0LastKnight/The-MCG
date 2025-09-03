@@ -7,6 +7,7 @@ import { Progress } from "../components/ui/Progress.tsx";
 import { addExp } from "../api/spotify";
 import { auth } from "../firebase";
 import { useUser } from "../utils/userContext";
+import { isLoggedIn } from "../utils/auth";
 
 const PacksPage = () => {
   const [pack, setPack] = useState("");
@@ -28,6 +29,7 @@ const PacksPage = () => {
   const [oldExp, setOldExp] = useState(0);
   const { user, setUser } = useUser();
   const [tempTrack, setTempTrack] = useState();
+  const [login, setLogin] = useState(isLoggedIn());
 
   const screenshotArea = useRef(null);
   useEffect(() => {
@@ -170,17 +172,32 @@ const PacksPage = () => {
       </div>
       {showChoose ? (
         <>
+          {!user ? (
+            <>
+              <div className="absolute left-1/2 transform -translate-x-1/2 w-full text-center">
+                Login to save your cards
+              </div>
+            </>
+          ) : (
+            <></>
+          )}
+
           <div className="absolute left-1/2  transform -translate-x-1/2 bottom-0  lg:left-[70%] lg:top-32 lg:translate-x-0 flex gap-2 flex-col ">
             <h1 className="font-concent hidden lg:flex lg:text-6xl">CHOOSE</h1>
             <div className="flex lg:flex-col gap-2">
-              <div
-                onClick={() => {
-                  setKeep(1);
-                }}
-                className=" border py-2 px-3 rounded bg-white hover:text-white hover:bg-black"
-              >
-                KEEP
-              </div>
+              {user ? (
+                <div
+                  onClick={() => {
+                    setKeep(1);
+                  }}
+                  className=" border py-2 px-3 rounded bg-white hover:text-white hover:bg-black"
+                >
+                  KEEP
+                </div>
+              ) : (
+                <></>
+              )}
+
               <div
                 onClick={() => {
                   window.location.reload();
@@ -197,18 +214,32 @@ const PacksPage = () => {
       )}
       {keep === 2 ? (
         <>
-          <div className="absolute left-1/2  transform -translate-x-1/2 bottom-0  lg:left-[70%] lg:top-32 lg:translate-x-0 flex gap-2 flex-col ">
-            <h1 className="font-concent hidden lg:flex lg:text-6xl">
+          <div className="absolute w-2/3 p-4 rounded left-1/2 top-1/2 transform -translate-y-1/2 -translate-x-1/2 bg-white lg:bg-transparent z-50 lg:left-[40%] lg:top-64 lg:translate-x-0 items-center  flex gap-2 flex-col ">
+            <h1 className="font-concent lg:flex text-xl lg:text-6xl">
               XP Gained
             </h1>
-            <div className="flex lg:flex-col gap-2">
-              <div className="flex lg:flex-col gap-2">
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2">
                 <div className="text-sm font-semibold grid grid-cols-1">
-                  <div>ablum : {tempTrack?.album.name}</div>
-                  <div>artist : {tempTrack?.album.artist}</div>
-                  <div>track : {tempTrack?.track.name} </div>
-                  <div>popularity : {tempTrack?.track.popularity} </div>
-                  <div>xp : {exp} </div>
+                  <p>
+                    <span className="font-bold">Album:</span>{" "}
+                    {tempTrack?.album.name}
+                  </p>
+                  <p>
+                    <span className="font-bold">Artist:</span>{" "}
+                    {tempTrack?.album.artist}
+                  </p>
+                  <p>
+                    <span className="font-bold">Track:</span>{" "}
+                    {tempTrack?.track.name}
+                  </p>
+                  <p>
+                    <span className="font-bold">Popularity:</span>{" "}
+                    {tempTrack?.track.popularity}
+                  </p>
+                  <p>
+                    <span className="font-bold">XP:</span> {exp}
+                  </p>
                 </div>
 
                 <div className="text-lg font-semibold">Level {userLevel}</div>
@@ -227,7 +258,7 @@ const PacksPage = () => {
             onClick={() => {
               window.location.reload();
             }}
-            className="absolute top-10 right-10 cursor-pointer"
+            className="absolute -top-0.5 right-3 lg:top-10 lg:right-10 cursor-pointer"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

@@ -6,10 +6,12 @@ import Iridescence from "../components/ui/Iridescence";
 import Dither from "../components/ui/Dither";
 import Silk from "../components/ui/Silk";
 import { FastAverageColor } from "fast-average-color";
+import { useUser } from "../utils/userContext";
 
 export default function CollectionPage({ page }) {
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { user, setUser } = useUser();
 
   useEffect(() => {
     if (page !== "collection") return;
@@ -161,14 +163,18 @@ export default function CollectionPage({ page }) {
   };
 
   return (
-    <div className="flex flex-col h-full w-full px-16 bg-transparent">
+    <div className="flex flex-col h-full w-full lg:px-16 justify-center items-center bg-transparent">
       <h1 className="text-6xl font-concent mb-4">Collection</h1>
-      <div className="flex-1 overflow-auto">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pb-6">
-          {cards.map((card, i) => (
-            <InnerCard key={i} card={card} />
-          ))}
-        </div>
+      <div className="flex-1 w-f overflow-auto">
+        {user ? (
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 pb-6">
+            {cards.map((card, i) => (
+              <InnerCard key={i} card={card} />
+            ))}
+          </div>
+        ) : (
+          <>Login to view your collection</>
+        )}
       </div>
     </div>
   );

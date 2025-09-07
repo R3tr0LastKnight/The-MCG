@@ -7,10 +7,15 @@ import {
   signInWithRedirect,
   getRedirectResult,
 } from "firebase/auth";
+import { Navigate } from "react-router";
+import { toast } from "react-toastify";
+import { useUser } from "../utils/userContext";
+import axios from "axios";
 
 const Nav = () => {
   const [login, setLogin] = useState(isLoggedIn());
   const [user, setUser] = useState(null);
+  const { logIn } = useUser();
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -22,6 +27,43 @@ const Nav = () => {
       setLogin(false);
     }
   }, []);
+
+  const handleGoogleAuth = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const googleUser = result.user;
+
+      // Send to backend to create/check user and return JWT
+      const res = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/users/google-login`,
+        {
+          name: googleUser.displayName,
+          email: googleUser.email,
+          photoURL: googleUser.photoURL,
+        }
+      );
+
+      if (res.data.success) {
+        const userData = res.data;
+
+        // Save to context
+        logIn(userData, userData.token);
+
+        // Save to localStorage
+        localStorage.setItem("auth", JSON.stringify(userData));
+        console.log("localuser:", JSON.stringify(userData));
+
+        toast.success("Login successful!", { autoClose: 1000 });
+
+        Navigate("/"); // optional
+      } else {
+        toast.error("Login failed.");
+      }
+    } catch (error) {
+      console.error("Google Sign-In Error:", error);
+      toast.error("Google Sign-In Failed");
+    }
+  };
 
   const handleGoogleLogin = async () => {
     try {
@@ -157,7 +199,7 @@ const Nav = () => {
           </>
         ) : (
           <div
-            onClick={handleGoogleLogin}
+            onClick={handleGoogleAuth}
             className="border border-black rounded-xl cursor-pointer hover:bg-black hover:text-white group hover:shadow-[0_4px_10px_rgb(0,0,0,0.4)]"
           >
             <div className="flex justify-center items-center gap-2 py-1 px-2 ">

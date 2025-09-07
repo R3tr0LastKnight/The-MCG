@@ -90,7 +90,7 @@ const Nav = () => {
       };
 
       const res = await fetch(
-        "https://myspotifymcgtestretro.loca.lt/api/users/google-login",
+        `${process.env.REACT_APP_BACKEND_URL}/api/users/google-login`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -200,7 +200,7 @@ const Nav = () => {
           </>
         ) : (
           <div
-            onClick={handleGoogleAuth}
+            onClick={handleGoogleLogin}
             className="border border-black rounded-xl cursor-pointer hover:bg-black hover:text-white group hover:shadow-[0_4px_10px_rgb(0,0,0,0.4)]"
           >
             <div className="flex justify-center items-center gap-2 py-1 px-2 ">

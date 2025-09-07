@@ -183,7 +183,9 @@ const PacksPage = () => {
           )}
 
           <div className="absolute left-1/2  transform -translate-x-1/2 bottom-0  lg:left-[70%] lg:top-32 lg:translate-x-0 flex gap-2 flex-col ">
-            <h1 className="font-concent hidden lg:flex lg:text-6xl">CHOOSE</h1>
+            <h1 className="font-concent hidden lg:flex text-xl lg:text-6xl">
+              CHOOSE
+            </h1>
             <div className="flex lg:flex-col gap-2">
               {user ? (
                 <div
@@ -214,13 +216,34 @@ const PacksPage = () => {
       )}
       {keep === 2 ? (
         <>
-          <div className="absolute w-2/3 p-4 rounded left-1/2 top-1/2 transform -translate-y-1/2 -translate-x-1/2 bg-white lg:bg-transparent z-50 lg:left-[40%] lg:top-64 lg:translate-x-0 items-center  flex gap-2 flex-col ">
-            <h1 className="font-concent lg:flex text-xl lg:text-6xl">
+          <div className=" h-[400px] w-[300px] shadow-[0_3px_10px_rgb(0,0,0,0.2)] absolute  p-4 rounded-lg left-1/2 top-1/2 transform -translate-y-1/2 -translate-x-1/2 bg-white lg:bg-transparent z-50 lg:left-[40%] lg:top-64 lg:translate-x-0 items-center  flex gap-2 flex-col ">
+            <div
+              onClick={() => {
+                window.location.reload();
+              }}
+              className="absolute top-3 right-3 lg:top-10 lg:right-10 cursor-pointer"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="size-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18 18 6M6 6l12 12"
+                />
+              </svg>
+            </div>
+            <h1 className="font-concent lg:flex text-3xl lg:text-6xl underline">
               XP Gained
             </h1>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col justify-center h-full w-full px-4 gap-2">
               <div className="flex flex-col gap-2">
-                <div className="text-sm font-semibold grid grid-cols-1">
+                <div className="text-xl font-semibold grid grid-cols-1">
                   <p>
                     <span className="font-bold">Album:</span>{" "}
                     {tempTrack?.album.name}
@@ -253,27 +276,6 @@ const PacksPage = () => {
                 </div>
               </div>
             </div>
-          </div>
-          <div
-            onClick={() => {
-              window.location.reload();
-            }}
-            className="absolute -top-0.5 right-3 lg:top-10 lg:right-10 cursor-pointer"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="size-6"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6 18 18 6M6 6l12 12"
-              />
-            </svg>
           </div>
         </>
       ) : (

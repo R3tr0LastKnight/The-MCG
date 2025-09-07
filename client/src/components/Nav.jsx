@@ -28,44 +28,6 @@ const Nav = () => {
     }
   }, []);
 
-  const handleGoogleAuth = async () => {
-    try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const googleUser = result.user;
-
-      // Send to backend to create/check user and return JWT
-      const res = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/api/users/google-login`,
-        {
-          uid: googleUser.uid, // add this
-          name: googleUser.displayName,
-          email: googleUser.email,
-          photo: googleUser.photoURL, // fix key name
-        }
-      );
-
-      if (res.data.success) {
-        const userData = res.data;
-
-        // Save to context
-        logIn(userData, userData.token);
-
-        // Save to localStorage
-        localStorage.setItem("auth", JSON.stringify(userData));
-        console.log("localuser:", JSON.stringify(userData));
-
-        toast.success("Login successful!", { autoClose: 1000 });
-
-        Navigate("/"); // optional
-      } else {
-        toast.error("Login failed.");
-      }
-    } catch (error) {
-      console.error("Google Sign-In Error:", error);
-      toast.error("Google Sign-In Failed");
-    }
-  };
-
   const handleGoogleLogin = async () => {
     try {
       let result;
@@ -109,7 +71,7 @@ const Nav = () => {
     } catch (err) {
       console.error("Google login error:", err);
     }
-    window.location.reload();
+    // window.location.reload();
   };
 
   // 🔹 After page reload (in App.js or a top-level component):

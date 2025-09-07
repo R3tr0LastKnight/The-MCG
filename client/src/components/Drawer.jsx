@@ -2,13 +2,16 @@ import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase";
+import { useUser } from "../utils/userContext";
 
 const Drawer = ({ page, setPage }) => {
   const [isDrawOpen, setIsDrawOpen] = useState(false);
   const drawerRef = useRef(null);
   const buttonRef = useRef(null);
-
-  const menuItems = ["Home", "Collection", "Packs", "Account", "Logout"];
+  const { user } = useUser();
+  const menuItems = user
+    ? ["Home", "Collection", "Packs", "Account", "Logout"]
+    : ["Home", "Collection", "Packs", "Account"];
   const drawerWidth = 256; // 16rem
   const topOffset = 160; // tailwind's top-40 = 10rem = 160px
 

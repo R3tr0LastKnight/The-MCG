@@ -37,9 +37,10 @@ const Nav = () => {
       const res = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/users/google-login`,
         {
+          uid: googleUser.uid, // add this
           name: googleUser.displayName,
           email: googleUser.email,
-          photoURL: googleUser.photoURL,
+          photo: googleUser.photoURL, // fix key name
         }
       );
 

@@ -1,60 +1,42 @@
 import React, { useEffect, useRef, useState, useMemo, Suspense } from "react";
 import { FastAverageColor } from "fast-average-color";
-import { fetchRandomTrack } from "../api/spotify";
+import { fetchRandomTrack, saveCard } from "../api/spotify";
 import { auth } from "../firebase";
-import { saveCard } from "../api/spotify";
 
-// ✅ Lazy load heavy shader components
 const LiquidChrome = React.lazy(() => import("./ui/LiquidChrome"));
 const Iridescence = React.lazy(() => import("./ui/Iridescence"));
 const FaultyTerminal = React.lazy(() => import("./ui/FaultyTerminal"));
 const Dither = React.lazy(() => import("./ui/Dither"));
 const Silk = React.lazy(() => import("./ui/Silk"));
 
-const Card = ({ pack, setTempTrack, setShowChoose, keep, setKeep, setExp }) => {
+const Card = ({
+  pack,
+  setTempTrack,
+  setShowChoose,
+  keep,
+  setKeep,
+  setExp,
+  track: passedTrack,
+  cardData: passedCardData,
+  cardData2,
+  setCardData2,
+  ...props
+}) => {
   const [colors, setColors] = useState({
     bgColor: "black",
     textColor: "white",
   });
   const imgRef = useRef(null);
-  const [track, setTrack] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [track, setTrack] = useState(passedTrack || null);
+  const [loading, setLoading] = useState(!passedTrack);
   const [border, setBorder] = useState(1);
   const [shaderColors, setShaderColors] = useState({
-    waveColor: [0.5, 0.5, 0.5], // default fallback
-    baseColor: [0.1, 0.1, 0.1], // default fallback
+    waveColor: [0.5, 0.5, 0.5],
+    baseColor: [0.1, 0.1, 0.1],
   });
   const [cardData, setCardData] = useState({});
   const [borderXp, setBorderXp] = useState(0);
 
-  // Fetch random track
-  useEffect(() => {
-    if (!pack) return;
-    const controller = new AbortController();
-
-    (async () => {
-      try {
-        console.log("fetching data");
-
-        const data = await fetchRandomTrack(pack, {
-          signal: controller.signal,
-        });
-        setTrack(data);
-        setTempTrack(data);
-        console.log(cardData);
-      } catch (err) {
-        if (err.name !== "AbortError") {
-          console.error("Failed to fetch random track:", err.message);
-        }
-      } finally {
-        setLoading(false);
-      }
-    })();
-
-    return () => controller.abort();
-  }, [pack]);
-
-  // Extract color **only from this track’s image**
   const handleImageLoad = async () => {
     try {
       const fac = new FastAverageColor();
@@ -65,7 +47,6 @@ const Card = ({ pack, setTempTrack, setShowChoose, keep, setKeep, setExp }) => {
         textColor: color.isDark ? "white" : "black",
       });
 
-      // ✅ Convert to normalized [0..1] range for shader usage
       if (color.value && Array.isArray(color.value)) {
         const [r, g, b] = color.value;
         const normalized = [(r ?? 0) / 255, (g ?? 0) / 255, (b ?? 0) / 255];
@@ -80,7 +61,6 @@ const Card = ({ pack, setTempTrack, setShowChoose, keep, setKeep, setExp }) => {
     }
   };
 
-  // Randomization stuff
   const CardRandomization = () => {
     const borderColors = [
       { class: "bg-gray-300", chance: 15, bgSubId: 1, bxp: 10 },
@@ -132,7 +112,12 @@ const Card = ({ pack, setTempTrack, setShowChoose, keep, setKeep, setExp }) => {
     };
   };
 
-  // pick between shaders
+  useEffect(() => {
+    if (!passedCardData) {
+      pickBorder();
+    } else setBorder(passedCardData.border);
+  }, [passedCardData]);
+
   const pickBorder = () => {
     const weights = [0.6, 0.1, 0.1, 0.1, 0.1];
     const rnd = Math.random();
@@ -147,15 +132,9 @@ const Card = ({ pack, setTempTrack, setShowChoose, keep, setKeep, setExp }) => {
     }
   };
 
-  useEffect(() => {
-    pickBorder();
-  }, []);
-
-  // Randomization state
   const [{ borderClass, effectClass, bgSubId, effectId, exp, bxp }] =
     useState(CardRandomization);
 
-  // ✅ Save everything into cardData
   useEffect(() => {
     if (track) {
       const data = {
@@ -166,33 +145,60 @@ const Card = ({ pack, setTempTrack, setShowChoose, keep, setKeep, setExp }) => {
         effectId,
       };
       setCardData(data);
-      console.log("exp:", borderXp + exp + bxp + track?.track.popularity / 2);
-      console.log("pop:", track?.track.popularity);
-
+      setCardData2({ track, data });
       setExp(borderXp + exp + bxp + track?.track.popularity / 2);
       setShowChoose(true);
-      console.log("card data:", data);
     }
   }, [track, border, borderClass, effectClass, bgSubId, effectId]);
 
   useEffect(() => {
-    if (keep === 1) {
-      const pushCard = async () => {
+    if (!pack || passedTrack) {
+      setTrack(passedTrack);
+      setBorder(passedTrack?.border);
+      if (passedTrack) {
+        const preparedData = {
+          trackId: passedTrack.track?.id,
+          albumId: passedTrack.album?.id,
+          border: passedTrack.border ?? border,
+          bgSubId,
+          effectId,
+        };
+        setCardData(preparedData);
+        setTempTrack(passedTrack, preparedData); // pass both
+      }
+    } else {
+      const controller = new AbortController();
+
+      (async () => {
         try {
-          const result = await saveCard(auth.currentUser?.uid, cardData);
-          setShowChoose(false);
-          setKeep(2);
-          console.log("Saved card:", result);
+          const data = await fetchRandomTrack(pack, {
+            signal: controller.signal,
+          });
+
+          const preparedData = {
+            trackId: data.track?.id,
+            albumId: data.album?.id,
+            border,
+            bgSubId,
+            effectId,
+          };
+
+          setTrack(data);
+          setCardData(preparedData);
+          setTempTrack(data, preparedData); // ✅ pass both track + cardData
         } catch (err) {
-          console.error("Error saving card:", err);
+          if (err.name !== "AbortError") {
+            console.error("Failed to fetch random track:", err.message);
+          }
+        } finally {
+          setLoading(false);
         }
-      };
+      })();
 
-      pushCard();
+      return () => controller.abort();
     }
-  }, [keep]);
+  }, [pack, passedTrack, border, bgSubId, effectId]);
 
-  // ✅ Memoize + lazy load backgrounds
   const background = useMemo(() => {
     if (border === 1) return null;
     if (border === 2) {
@@ -280,12 +286,18 @@ const Card = ({ pack, setTempTrack, setShowChoose, keep, setKeep, setExp }) => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 gap-4">
+    <div
+      {...props}
+      className={`flex flex-col items-center justify-center ${
+        keep === 2
+          ? ""
+          : "absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2"
+      }  gap-4`}
+    >
       <div className="relative h-[390px] w-[290px] rounded-lg shadow-[0_3px_10px_rgb(0,0,0,0.2)] overflow-hidden">
         <div
           className={`absolute inset-0 -z-10 pointer-events-none ${borderClass} ${effectClass}`}
         >
-          {/* ✅ Suspense wrapper for lazy shaders */}
           <Suspense fallback={null}>{background}</Suspense>
         </div>
 

@@ -4,10 +4,17 @@ import * as htmlToImage from "html-to-image";
 import { motion } from "framer-motion";
 import Card from "../components/Card";
 import { Progress } from "../components/ui/Progress.tsx";
-import { addExp } from "../api/spotify";
+import {
+  addExp,
+  getUserCardByTrack,
+  getUserCardWithTrack,
+  saveCard,
+  saveOrReplaceCard,
+} from "../api/spotify";
 import { auth } from "../firebase";
 import { useUser } from "../utils/userContext";
 import { isLoggedIn } from "../utils/auth";
+import CardReRender from "../components/CardRerenderer";
 
 const PacksPage = () => {
   const [pack, setPack] = useState("");
@@ -15,14 +22,14 @@ const PacksPage = () => {
   const [showPack, setShowPack] = useState(true);
   const [colors, setColors] = useState({});
   const [burned, setBurned] = useState(false);
-  const [getCard, setGetCard] = useState(false);
+  // const [getCard, setGetCard] = useState(false);
   const [showChoose, setShowChoose] = useState(false);
   const [packData, setPackData] = useState({
     bgColor: "",
     textColor: "",
     index: 0,
   });
-  const [keep, setKeep] = useState(null);
+  const [keep, setKeep] = useState(0);
   const [exp, setExp] = useState(0);
   const [progress, setProgress] = useState(0); // percentage for bar
   const [userLevel, setUserLevel] = useState(1);
@@ -30,6 +37,9 @@ const PacksPage = () => {
   const { user, setUser } = useUser();
   const [tempTrack, setTempTrack] = useState();
   const [login, setLogin] = useState(isLoggedIn());
+  const [oldCard, setOldCard] = useState();
+  const [choosin, setChoosin] = useState(0);
+  const [cardData2, setCardData2] = useState({});
 
   const screenshotArea = useRef(null);
   useEffect(() => {
@@ -67,8 +77,41 @@ const PacksPage = () => {
 
   useEffect(() => {
     if (keep === 2) {
+      const pushCard = async () => {
+        try {
+          if (choosin === 1) {
+            // replace oldCard with cardData2
+            await saveOrReplaceCard(auth.currentUser?.uid, {
+              newCard: cardData2?.data,
+              oldCard: oldCard?.data,
+            });
+            setKeep(3);
+          } else if (choosin === 2) {
+            // keep old card -> no backend change
+            console.log("Kept old card, no backend update");
+            setKeep(3);
+          }
+
+          // setShowChoose(false);
+        } catch (err) {
+          console.error("Error saving card:", err);
+        }
+      };
+
+      pushCard();
+    }
+  }, [keep, choosin, cardData2, oldCard]);
+
+  useEffect(() => {
+    if (keep === 3) {
       async function addFinalExp() {
         try {
+          // ✅ Skip XP if old card was chosen
+          if (choosin === 2) {
+            console.log("Kept old card → no XP awarded");
+            return;
+          }
+
           const gainedExp = exp;
           console.log("sent xp: ", exp);
 
@@ -77,7 +120,6 @@ const PacksPage = () => {
           const updatedUser = { ...user, level: result.level, exp: result.exp };
           localStorage.setItem("user", JSON.stringify(updatedUser));
           setUser(updatedUser);
-
           setUserLevel(result.level);
 
           // Calculate old vs new percentages
@@ -89,6 +131,7 @@ const PacksPage = () => {
           setTimeout(() => {
             setProgress(newPercent);
           }, 200);
+
           console.log("temp:", tempTrack);
 
           // Save latest exp for next time
@@ -102,9 +145,75 @@ const PacksPage = () => {
     }
   }, [keep]);
 
+  console.log("keep:", keep);
+
   useEffect(() => {
-    setGetCard(!getCard);
-  }, [pack]);
+    const checkExistingCard = async () => {
+      if (keep === 2 && tempTrack) {
+        try {
+          const data = await getUserCardWithTrack(
+            auth.currentUser?.uid,
+            tempTrack.track.id
+          );
+
+          if (!data || !data.exists) {
+            console.log("No old card found → skipping chooser");
+            // 🚀 skip straight to XP step
+            setKeep(3);
+            setChoosin(1);
+            return;
+          }
+
+          // Normalize and save old card → now chooser makes sense
+          const normalized = mapOldCardResponse(data);
+          setOldCard(normalized);
+        } catch (err) {
+          if (err.message?.includes("404") || err.response?.status === 404) {
+            console.log("No old card found → skipping chooser");
+            setKeep(3); // 🚀 skip chooser
+          } else {
+            console.error("Unexpected error fetching old card:", err);
+          }
+        }
+      }
+    };
+
+    checkExistingCard();
+  }, [keep, tempTrack]);
+
+  function mapOldCardResponse(res) {
+    if (!res.exists) return null;
+
+    const { card, track } = res;
+
+    return {
+      data: {
+        trackId: card.trackId,
+        albumId: card.albumId,
+        border: card.border,
+        bgSubId: card.bgSubId,
+        effectId: card.effectId,
+      },
+      track: {
+        track: {
+          id: track.id,
+          name: track.name,
+          duration_ms: track.duration_ms,
+          popularity: track.popularity,
+          preview_url: track.preview_url,
+          external_url: track.external_urls.spotify,
+        },
+
+        album: {
+          id: track.album.id,
+          artist: track.artists?.[0]?.name ?? "Unknown",
+          name: track.album.name,
+          image: track.album.images?.[0]?.url ?? null,
+          spotifyUrl: track.album.external_urls.spotify,
+        },
+      },
+    };
+  }
 
   return (
     <div className="transition ">
@@ -140,16 +249,21 @@ const PacksPage = () => {
               />
             </motion.div>
             <div className="absolute z-10">
-              <Card
-                pack={pack}
-                getCard={getCard}
-                imgSrc={imgSrc}
-                setShowChoose={setShowChoose}
-                keep={keep}
-                setKeep={setKeep}
-                setExp={setExp}
-                setTempTrack={setTempTrack}
-              />
+              {keep < 1 ? (
+                <Card
+                  pack={pack}
+                  imgSrc={imgSrc}
+                  setShowChoose={setShowChoose}
+                  keep={keep}
+                  setKeep={setKeep}
+                  setExp={setExp}
+                  setTempTrack={setTempTrack}
+                  cardData2={cardData2}
+                  setCardData2={setCardData2}
+                />
+              ) : (
+                <></>
+              )}
             </div>
           </>
         )}
@@ -182,46 +296,91 @@ const PacksPage = () => {
             <></>
           )}
 
-          <div className="absolute left-1/2  transform -translate-x-1/2 bottom-0  lg:left-[70%] lg:top-32 lg:translate-x-0 flex gap-2 flex-col ">
-            <h1 className="font-concent hidden lg:flex text-xl lg:text-6xl">
-              CHOOSE
-            </h1>
-            <div className="flex lg:flex-col gap-2">
-              {user ? (
+          {keep < 1 ? (
+            <div className="absolute left-1/2  transform -translate-x-1/2 bottom-0  lg:left-[70%] lg:top-32 lg:translate-x-0 flex gap-2 flex-col ">
+              <h1 className="font-concent hidden lg:flex text-xl lg:text-6xl">
+                CHOOSE
+              </h1>
+              <div className="flex lg:flex-col gap-2">
+                {user ? (
+                  <div
+                    onClick={() => {
+                      setKeep(2);
+                    }}
+                    className=" border py-2 px-3 rounded bg-white hover:text-white hover:bg-black"
+                  >
+                    KEEP
+                  </div>
+                ) : (
+                  <></>
+                )}
+
                 <div
                   onClick={() => {
-                    setKeep(1);
+                    window.location.reload();
                   }}
                   className=" border py-2 px-3 rounded bg-white hover:text-white hover:bg-black"
                 >
-                  KEEP
+                  DISCARD
                 </div>
-              ) : (
-                <></>
-              )}
-
-              <div
-                onClick={() => {
-                  window.location.reload();
-                }}
-                className=" border py-2 px-3 rounded bg-white hover:text-white hover:bg-black"
-              >
-                DISCARD
               </div>
             </div>
-          </div>
+          ) : (
+            <></>
+          )}
         </>
       ) : (
         <></>
       )}
-      {keep === 2 ? (
+
+      {keep === 2 && oldCard ? (
+        <div className="flex flex-col items-center justify-center absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 gap-4">
+          <h1 className="text-6xl font-concent">Choose 1 to keep</h1>
+          <div className="flex items-center justify-center gap-6">
+            {/* New Card */}
+            <div className="z-50 flex relative items-center gap-0">
+              <div className="flex items-center whitespace-nowrap relative z-40 text-center justify-center w-12 h-40 bg-white  rounded-tl-lg rounded-bl-lg shadow-[5px_3px_10px_rgb(0,0,0,0.2)]">
+                <div className="-rotate-90 font-poppins">New Shiny Card</div>
+              </div>
+              <div className="cursor-pointer">
+                <CardReRender
+                  cardData={cardData2}
+                  type="new"
+                  onClick={() => setChoosin(1)}
+                  className="cursor-pointer"
+                />
+              </div>
+            </div>
+
+            {/* Old Card UI */}
+            <div>or</div>
+            <div className="z-50 flex relative items-center gap-0">
+              <div className="cursor-pointer">
+                <CardReRender
+                  cardData={oldCard}
+                  type="old"
+                  onClick={() => setChoosin(2)}
+                  className="cursor-pointer"
+                />
+              </div>
+              <div className="flex items-center whitespace-nowrap relative z-40 text-center justify-center w-12 h-56 bg-white  rounded-tr-lg rounded-br-lg shadow-[5px_3px_10px_rgb(0,0,0,0.2)]">
+                <div className="rotate-90 font-poppins">
+                  Card from your collection
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {keep === 3 ? (
         <>
-          <div className=" h-[400px] w-[300px] shadow-[0_3px_10px_rgb(0,0,0,0.2)] absolute  p-4 rounded-lg left-1/2 top-1/2 transform -translate-y-1/2 -translate-x-1/2 bg-white lg:bg-transparent z-50 lg:left-[40%] lg:top-64 lg:translate-x-0 items-center  flex gap-2 flex-col ">
+          <div className=" h-[400px] w-[350px] shadow-[0_3px_10px_rgb(0,0,0,0.2)] absolute  p-4 rounded-lg left-1/2 top-1/2 transform -translate-y-1/2 -translate-x-1/2 !bg-white lg:bg-transparent z-50 lg:left-[35%] lg:top-64 lg:translate-x-0 items-center  flex gap-2 flex-col ">
             <div
               onClick={() => {
                 window.location.reload();
               }}
-              className="absolute top-3 right-3 lg:top-10 lg:right-10 cursor-pointer"
+              className="absolute top-3 right-3 lg:-top-10 lg:-right-10 cursor-pointer"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -238,10 +397,19 @@ const PacksPage = () => {
                 />
               </svg>
             </div>
-            <h1 className="font-concent lg:flex text-3xl lg:text-6xl underline">
-              XP Gained
+            <h1 className="font-concent lg:flex text-3xl lg:text-6xl h-1/4 underline whitespace-nowrap ">
+              {choosin === 1 ? <>XP Gained</> : <>No XP Gained</>}
             </h1>
-            <div className="flex flex-col justify-center h-full w-full px-4 gap-2">
+            <div className="text-center">
+              {choosin === 2 ? (
+                <div className="h-[15%] ">
+                  You've choosen to keep card from your collection
+                </div>
+              ) : (
+                <></>
+              )}
+            </div>
+            <div className="flex flex-col justify-center h-2/4 w-full px-4 gap-2">
               <div className="flex flex-col gap-2">
                 <div className="text-xl font-semibold grid grid-cols-1">
                   <p>
@@ -249,31 +417,44 @@ const PacksPage = () => {
                     {tempTrack?.album.name}
                   </p>
                   <p>
-                    <span className="font-bold">Artist:</span>{" "}
-                    {tempTrack?.album.artist}
-                  </p>
-                  <p>
                     <span className="font-bold">Track:</span>{" "}
                     {tempTrack?.track.name}
+                  </p>
+                  <p>
+                    <span className="font-bold">Artist:</span>{" "}
+                    {tempTrack?.album.artist}
                   </p>
                   <p>
                     <span className="font-bold">Popularity:</span>{" "}
                     {tempTrack?.track.popularity}
                   </p>
-                  <p>
-                    <span className="font-bold">XP:</span> {exp}
-                  </p>
+                  {choosin === 1 ? (
+                    <>
+                      <p>
+                        <span className="font-bold">XP:</span> {exp}
+                      </p>
+                    </>
+                  ) : (
+                    <></>
+                  )}
                 </div>
 
-                <div className="text-lg font-semibold">Level {userLevel}</div>
-                <Progress
-                  value={progress}
-                  className="bg-white border [&>div]:bg-black transition-all duration-1000 ease-out"
-                />
-
-                <div className="text-sm text-gray-600">
-                  {Math.round(progress)}% to next level
-                </div>
+                {choosin === 1 ? (
+                  <>
+                    <div className="text-lg font-semibold">
+                      Level {userLevel}
+                    </div>
+                    <Progress
+                      value={progress}
+                      className="bg-white border [&>div]:bg-black transition-all duration-1000 ease-out"
+                    />
+                    <div className="text-sm text-gray-600">
+                      {Math.round(progress)}% to next level
+                    </div>
+                  </>
+                ) : (
+                  <></>
+                )}
               </div>
             </div>
           </div>

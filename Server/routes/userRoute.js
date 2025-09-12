@@ -1,10 +1,20 @@
 const express = require("express");
 const router = express.Router();
-const { googleLogin } = require("../controllers/userController");
-const { addCard } = require("../controllers/userController");
-const { addExp } = require("../controllers/userController");
-const { fetchUserAlbums } = require("../controllers/userController");
 
+const {
+  getUserCardByTrack,
+  getUserCardWithTrack,
+  saveOrReplaceCard,
+  fetchUserAlbums,
+  addExp,
+  addCard,
+  googleLogin,
+} = require("../controllers/userController");
+
+// POST /api/users/save-card
+router.post("/save-card", saveOrReplaceCard);
+router.get("/:uid/card", getUserCardByTrack);
+router.get("/:uid/card-with-track", getUserCardWithTrack);
 router.get("/albums/fetch-user", fetchUserAlbums);
 router.post("/add-exp", addExp);
 router.post("/add-card", addCard);

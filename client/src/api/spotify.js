@@ -1,3 +1,5 @@
+import axios from "axios";
+
 export async function searchAlbumByName(artist, album) {
   const res = await fetch(
     `${
@@ -86,6 +88,47 @@ export async function fetchUserEnrichedCards(uid, options = {}) {
   const data = await res.json();
 
   if (!res.ok) throw new Error(data.error || "Failed to fetch user cards");
+
+  return data;
+}
+
+export const getUserCardByTrack = async (uid, trackId) => {
+  const res = await axios.get(
+    `${process.env.REACT_APP_BACKEND_URL}/api/users/${uid}/card`,
+    {
+      params: { trackId },
+    }
+  );
+  return res.data;
+};
+
+export async function getUserCardWithTrack(uid, trackId, options = {}) {
+  const url = `${process.env.REACT_APP_BACKEND_URL}/api/users/${uid}/card-with-track?trackId=${trackId}`;
+
+  const res = await fetch(url, options);
+  const data = await res.json();
+
+  if (!res.ok) throw new Error(data.error || "Failed to fetch card with track");
+
+  return data; // { exists: true/false, card, track }
+}
+
+export async function saveOrReplaceCard(
+  uid,
+  { newCard, oldCard },
+  options = {}
+) {
+  const url = `${process.env.REACT_APP_BACKEND_URL}/api/users/save-card`;
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ uid, newCard, oldCard }),
+    ...options,
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to save or replace card");
 
   return data;
 }

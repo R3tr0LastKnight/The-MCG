@@ -1,5 +1,6 @@
 const User = require("../models/userModel");
 const { getValidSpotifyAccessToken } = require("../utils/spotifyAuth");
+const { fetchTrackFromSpotify } = require("../utils/spotifyService");
 
 // Google Login Controller
 exports.googleLogin = async (req, res) => {
@@ -125,5 +126,102 @@ exports.fetchUserAlbums = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to fetch user albums" });
+  }
+};
+
+exports.getUserCardByTrack = async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const { trackId } = req.query;
+
+    const user = await User.findOne({ uid });
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const card = user.cards.find((c) => c.trackId === trackId);
+    if (!card) return res.status(404).json({ exists: false });
+
+    res.json({ exists: true, card });
+  } catch (err) {
+    console.error("Error fetching user card:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+exports.getUserCardWithTrack = async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const { trackId } = req.query;
+
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(200).json({}); // no data if user not found
+    }
+
+    const card = user.cards.find((c) => c.trackId === trackId);
+    if (!card) {
+      return res.status(200).json({}); // no card found
+    }
+
+    const track = await fetchTrackFromSpotify(trackId);
+
+    res.json({ card, track });
+  } catch (err) {
+    console.error("Error fetching user card + track:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+exports.getUserCardWithTrack = async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const { trackId } = req.query;
+
+    const user = await User.findOne({ uid });
+    if (!user) return res.status(200).json({ error: "User not found" });
+
+    const card = user.cards.find((c) => c.trackId === trackId);
+    if (!card) return res.status(200).json({ exists: false });
+
+    const track = await fetchTrackFromSpotify(trackId);
+
+    res.json({ exists: true, card, track });
+  } catch (err) {
+    console.error("Error fetching user card + track:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+// Save or replace a card
+exports.saveOrReplaceCard = async (req, res) => {
+  try {
+    const { uid, newCard, oldCard } = req.body;
+
+    if (!uid) {
+      return res.status(400).json({ error: "Missing user ID" });
+    }
+
+    const user = await User.findOne({ uid });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // If oldCard is provided, remove it first
+    if (oldCard?.trackId) {
+      user.cards = user.cards.filter(
+        (card) => card.trackId !== oldCard.trackId
+      );
+    }
+
+    // If newCard is provided, add it
+    if (newCard) {
+      user.cards.push(newCard);
+    }
+
+    await user.save();
+
+    res.json({ success: true, cards: user.cards });
+  } catch (err) {
+    console.error("Error saving/replacing card:", err);
+    res.status(500).json({ error: "Failed to save or replace card" });
   }
 };

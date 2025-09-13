@@ -16,6 +16,7 @@ function SplashCursor({
   COLOR_UPDATE_SPEED = 10,
   BACK_COLOR = { r: 0.5, g: 0, b: 0 },
   TRANSPARENT = true,
+  packColor,
 }) {
   const canvasRef = useRef(null);
 
@@ -1064,12 +1065,13 @@ function SplashCursor({
       return delta;
     }
 
+    function rgbStringToObject(rgbString) {
+      const [r, g, b] = rgbString.match(/\d+/g).map(Number);
+      return { r: r / 255, g: g / 255, b: b / 255 };
+    }
+
     function generateColor() {
-      let c = HSVtoRGB(Math.random(), 1.0, 1.0);
-      c.r *= 0.15;
-      c.g *= 0.15;
-      c.b *= 0.15;
-      return c;
+      return rgbStringToObject(packColor.bgColor);
     }
 
     function HSVtoRGB(h, s, v) {

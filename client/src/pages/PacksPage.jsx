@@ -258,20 +258,21 @@ const PacksPage = () => {
     <div className="transition ">
       {!showButton && !burned && (
         <SplashCursor
-          SIM_RESOLUTION={50} // ↓ lower = faster (default is often 128+)
+          SIM_RESOLUTION={32} // ↓ lower = faster (default is often 128+)
           DYE_RESOLUTION={128} // good balance between smooth color and perf
           CAPTURE_RESOLUTION={100} // keep modest
           DENSITY_DISSIPATION={1} // colors fade gradually
           VELOCITY_DISSIPATION={0.5} // smoother motion, less chaotic
-          PRESSURE={0.4} // stable fluid without jitter
-          PRESSURE_ITERATIONS={10} // reduce from heavy 20–30
-          CURL={5} // nice swirls without heavy calc
-          SPLAT_RADIUS={0.25} // smaller splats for less load
-          SPLAT_FORCE={2500} // reasonable force
+          PRESSURE={0.2} // stable fluid without jitter
+          PRESSURE_ITERATIONS={4} // reduce from heavy 20–30
+          CURL={15} // nice swirls without heavy calc
+          SPLAT_RADIUS={0.12} // smaller splats for less load
+          SPLAT_FORCE={2000} // reasonable force
           SHADING={true} // keep shading for nice 3D feel
-          COLOR_UPDATE_SPEED={10} // not too frequent → better perf
+          COLOR_UPDATE_SPEED={20} // not too frequent → better perf
           BACK_COLOR={parseColor(packData.bgColor)}
           TRANSPARENT={true} // lets background show throughbg
+          packColor={packData}
         />
       )}
       <div className="flex flex-col items-center justify-center absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 ">
@@ -292,6 +293,14 @@ const PacksPage = () => {
           </div>
         ) : (
           <>
+            {!showButton && !burned ? (
+              <div className="absolute top-3 right-3 lg:-top- lg:-right-96 cursor-pointer">
+                Hover over card to open it
+              </div>
+            ) : (
+              <></>
+            )}
+
             <motion.div
               initial={{ clipPath: "circle(100% at 50% 50%)" }}
               animate={
@@ -515,7 +524,7 @@ const PacksPage = () => {
                       className="bg-white border [&>div]:bg-black transition-all duration-1000 ease-out"
                     />
                     <div className="text-sm text-gray-600">
-                      {Math.round(progress)}% to next level
+                      {Math.round(progress)}%
                     </div>
                   </>
                 ) : (

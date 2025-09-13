@@ -13,7 +13,6 @@ import {
 } from "../api/spotify";
 import { auth } from "../firebase";
 import { useUser } from "../utils/userContext";
-import { isLoggedIn } from "../utils/auth";
 import CardReRender from "../components/CardRerenderer";
 import SplashCursor from "../components/ui/SplashCursor";
 
@@ -23,7 +22,6 @@ const PacksPage = () => {
   const [showPack, setShowPack] = useState(true);
   const [colors, setColors] = useState({});
   const [burned, setBurned] = useState(false);
-  // const [getCard, setGetCard] = useState(false);
   const [showChoose, setShowChoose] = useState(false);
   const [packData, setPackData] = useState({
     bgColor: "",
@@ -37,11 +35,9 @@ const PacksPage = () => {
   const [oldExp, setOldExp] = useState(0);
   const { user, setUser } = useUser();
   const [tempTrack, setTempTrack] = useState();
-  const [login, setLogin] = useState(isLoggedIn());
   const [oldCard, setOldCard] = useState();
   const [choosin, setChoosin] = useState(0);
   const [cardData2, setCardData2] = useState({});
-  const [hoverTimer, setHoverTimer] = useState(null);
   const [showButton, setShowButton] = useState(true);
   const [packRevealed, setPackRevealed] = useState(false); // after clicking "Open Pack"
   const [hasOpened, setHasOpened] = useState(false); // after hover finishes
@@ -64,14 +60,43 @@ const PacksPage = () => {
     console.log("color:", packData);
   };
 
-  // hover logic
-  const handleHover = () => {
-    const timer = setTimeout(() => {
-      setHasOpened(true); // finally open
+  const holdTimerRef = useRef(null);
+  const HOLD_DURATION = 2000; // ms → how long to hold before burn
+
+  const startHold = (e) => {
+    // prevent scrolling on touch devices
+    if (e && (e.type === "touchstart" || e.pointerType === "touch")) {
+      e.preventDefault?.();
+    }
+
+    // clear any old timer
+    if (holdTimerRef.current) {
+      clearTimeout(holdTimerRef.current);
+      holdTimerRef.current = null;
+    }
+
+    holdTimerRef.current = window.setTimeout(() => {
+      setHasOpened(true);
       setShowPack(false);
-    }, 2000);
-    setHoverTimer(timer);
+      holdTimerRef.current = null;
+    }, HOLD_DURATION);
   };
+
+  const cancelHold = () => {
+    if (holdTimerRef.current) {
+      clearTimeout(holdTimerRef.current);
+      holdTimerRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (holdTimerRef.current) {
+        clearTimeout(holdTimerRef.current);
+        holdTimerRef.current = null;
+      }
+    };
+  }, []);
 
   const handleCapture = async () => {
     if (!screenshotArea.current) {
@@ -98,20 +123,25 @@ const PacksPage = () => {
     if (keep === 2) {
       const pushCard = async () => {
         try {
-          if (choosin === 1) {
+          if (!oldCard) {
+            // no duplicate → just save new card
+            console.log("card Data :", cardData2);
+
+            await saveOrReplaceCard(auth.currentUser?.uid, {
+              newCard: cardData2?.data,
+            });
+          } else if (choosin === 1) {
             // replace oldCard with cardData2
             await saveOrReplaceCard(auth.currentUser?.uid, {
               newCard: cardData2?.data,
               oldCard: oldCard?.data,
             });
-            setKeep(3);
           } else if (choosin === 2) {
-            // keep old card -> no backend change
+            // keep old card → no backend update
             console.log("Kept old card, no backend update");
-            setKeep(3);
           }
 
-          // setShowChoose(false);
+          setKeep(3);
         } catch (err) {
           console.error("Error saving card:", err);
         }
@@ -294,7 +324,7 @@ const PacksPage = () => {
         ) : (
           <>
             {!showButton && !burned ? (
-              <div className="absolute top-3 right-3 lg:-top- lg:-right-96 cursor-pointer">
+              <div className="absolute bottom-56 whitespace-nowrap   cursor-pointer">
                 Hover over card to open it
               </div>
             ) : (
@@ -305,22 +335,38 @@ const PacksPage = () => {
               initial={{ clipPath: "circle(100% at 50% 50%)" }}
               animate={
                 hasOpened
-                  ? { clipPath: "circle(0% at 50% 50%)" } // 👈 only burn after hover
-                  : { clipPath: "circle(100% at 50% 50%)" } // stay closed
+                  ? { clipPath: "circle(0% at 50% 50%)" }
+                  : { clipPath: "circle(100% at 50% 50%)" }
               }
               transition={{ duration: 2, ease: "easeInOut" }}
               onAnimationComplete={() => {
-                if (hasOpened) setBurned(true); // 👈 only mark burned after hover
+                if (hasOpened) setBurned(true);
               }}
-              onPointerEnter={handleHover} // 👈 works for mouse + touch
-              onPointerLeave={() => {
-                if (hoverTimer) {
-                  clearTimeout(hoverTimer);
-                  setHoverTimer(null);
-                }
+              // ✅ unified hover / press support
+              onPointerEnter={(e) => {
+                if (e.pointerType === "mouse") startHold(e); // hover for desktop
               }}
+              onPointerLeave={cancelHold}
+              onPointerDown={startHold} // press for touch or mouse
+              onPointerUp={cancelHold}
+              onPointerCancel={cancelHold}
+              // fallback for old browsers without PointerEvent
+              onTouchStart={(e) => {
+                if (typeof window !== "undefined" && !window.PointerEvent)
+                  startHold(e);
+              }}
+              onTouchEnd={(e) => {
+                if (typeof window !== "undefined" && !window.PointerEvent)
+                  cancelHold();
+              }}
+              style={{ touchAction: "none" }} // disable scroll during hold
               className="h-[400px] w-[300px] rounded-lg justify-center items-center gap-4 shadow-[0_3px_10px_rgb(0,0,0,0.2)] absolute z-20"
             >
+              <motion.img
+                className="absolute inset-0 w-full h-full object-cover rounded-lg"
+                src={imgSrc}
+                alt="Captured Pack"
+              />
               <motion.img
                 className="absolute inset-0 w-full h-full object-cover rounded-lg "
                 src={imgSrc}

@@ -312,10 +312,10 @@ const PacksPage = () => {
               onAnimationComplete={() => {
                 if (hasOpened) setBurned(true); // 👈 only mark burned after hover
               }}
-              onMouseEnter={handleHover}
-              onMouseLeave={() => {
+              onPointerEnter={handleHover} // 👈 works for mouse + touch
+              onPointerLeave={() => {
                 if (hoverTimer) {
-                  clearTimeout(hoverTimer); // cancel if user leaves early
+                  clearTimeout(hoverTimer);
                   setHoverTimer(null);
                 }
               }}

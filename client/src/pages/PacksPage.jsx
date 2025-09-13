@@ -15,6 +15,7 @@ import { auth } from "../firebase";
 import { useUser } from "../utils/userContext";
 import { isLoggedIn } from "../utils/auth";
 import CardReRender from "../components/CardRerenderer";
+import SplashCursor from "../components/ui/SplashCursor";
 
 const PacksPage = () => {
   const [pack, setPack] = useState("");
@@ -40,19 +41,37 @@ const PacksPage = () => {
   const [oldCard, setOldCard] = useState();
   const [choosin, setChoosin] = useState(0);
   const [cardData2, setCardData2] = useState({});
+  const [hoverTimer, setHoverTimer] = useState(null);
+  const [showButton, setShowButton] = useState(true);
+  const [packRevealed, setPackRevealed] = useState(false); // after clicking "Open Pack"
+  const [hasOpened, setHasOpened] = useState(false); // after hover finishes
 
   const screenshotArea = useRef(null);
+
   useEffect(() => {
     if (imgSrc) {
-      const timer = setTimeout(() => {
-        setShowPack(false);
-      }, 2000);
-
-      return () => clearTimeout(timer);
+      setShowPack(false); // ✅ show captured card instead of pack
     } else {
-      setShowPack(true);
+      setShowPack(true); // fallback to showing unopened pack
     }
   }, [imgSrc]);
+
+  // click handler
+  const handleOpenPackClick = async () => {
+    await handleCapture(); // take screenshot
+    setShowButton(false); // hide button
+    setPackRevealed(true); // now show screenshot, but not open yet
+    console.log("color:", packData);
+  };
+
+  // hover logic
+  const handleHover = () => {
+    const timer = setTimeout(() => {
+      setHasOpened(true); // finally open
+      setShowPack(false);
+    }, 2000);
+    setHoverTimer(timer);
+  };
 
   const handleCapture = async () => {
     if (!screenshotArea.current) {
@@ -215,8 +234,46 @@ const PacksPage = () => {
     };
   }
 
+  function parseColor(color) {
+    if (color.startsWith("#")) {
+      // HEX → RGB
+      const bigint = parseInt(color.slice(1), 16);
+      const r = ((bigint >> 16) & 255) / 255;
+      const g = ((bigint >> 8) & 255) / 255;
+      const b = (bigint & 255) / 255;
+      return { r, g, b };
+    } else if (color.startsWith("rgb")) {
+      // rgb(...) → { r, g, b }
+      const nums = color.match(/\d+/g).map(Number);
+      return {
+        r: nums[0] / 255,
+        g: nums[1] / 255,
+        b: nums[2] / 255,
+      };
+    }
+    return { r: 0, g: 0, b: 0 }; // fallback black
+  }
+
   return (
     <div className="transition ">
+      {!showButton && !burned && (
+        <SplashCursor
+          SIM_RESOLUTION={50} // ↓ lower = faster (default is often 128+)
+          DYE_RESOLUTION={128} // good balance between smooth color and perf
+          CAPTURE_RESOLUTION={100} // keep modest
+          DENSITY_DISSIPATION={1} // colors fade gradually
+          VELOCITY_DISSIPATION={0.5} // smoother motion, less chaotic
+          PRESSURE={0.4} // stable fluid without jitter
+          PRESSURE_ITERATIONS={10} // reduce from heavy 20–30
+          CURL={5} // nice swirls without heavy calc
+          SPLAT_RADIUS={0.25} // smaller splats for less load
+          SPLAT_FORCE={2500} // reasonable force
+          SHADING={true} // keep shading for nice 3D feel
+          COLOR_UPDATE_SPEED={10} // not too frequent → better perf
+          BACK_COLOR={parseColor(packData.bgColor)}
+          TRANSPARENT={true} // lets background show throughbg
+        />
+      )}
       <div className="flex flex-col items-center justify-center absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 ">
         {showPack ? (
           <div>
@@ -237,9 +294,22 @@ const PacksPage = () => {
           <>
             <motion.div
               initial={{ clipPath: "circle(100% at 50% 50%)" }}
-              animate={{ clipPath: "circle(0% at 50% 50%)" }}
+              animate={
+                hasOpened
+                  ? { clipPath: "circle(0% at 50% 50%)" } // 👈 only burn after hover
+                  : { clipPath: "circle(100% at 50% 50%)" } // stay closed
+              }
               transition={{ duration: 2, ease: "easeInOut" }}
-              onAnimationComplete={() => setBurned(true)}
+              onAnimationComplete={() => {
+                if (hasOpened) setBurned(true); // 👈 only mark burned after hover
+              }}
+              onMouseEnter={handleHover}
+              onMouseLeave={() => {
+                if (hoverTimer) {
+                  clearTimeout(hoverTimer); // cancel if user leaves early
+                  setHoverTimer(null);
+                }
+              }}
               className="h-[400px] w-[300px] rounded-lg justify-center items-center gap-4 shadow-[0_3px_10px_rgb(0,0,0,0.2)] absolute z-20"
             >
               <motion.img
@@ -267,21 +337,17 @@ const PacksPage = () => {
             </div>
           </>
         )}
-        {pack && showPack ? (
+        {pack && !packRevealed && showButton && (
           <div
             style={{
               backgroundColor: packData.bgColor,
               color: packData.textColor,
             }}
-            className={` px-4 py-1 text-lg rounded-lg cursor-pointer absolute bottom-0 transition`}
-            onClick={() => {
-              handleCapture();
-            }}
+            className="px-4 py-1 text-lg rounded-lg cursor-pointer absolute bottom-0 transition"
+            onClick={handleOpenPackClick}
           >
             Open Pack
           </div>
-        ) : (
-          <></>
         )}
       </div>
       {showChoose ? (
@@ -296,7 +362,7 @@ const PacksPage = () => {
             <></>
           )}
 
-          {keep < 1 ? (
+          {keep < 1 && burned === true ? (
             <div className="absolute left-1/2  transform -translate-x-1/2 bottom-0  lg:left-[70%] lg:top-32 lg:translate-x-0 flex gap-2 flex-col ">
               <h1 className="font-concent hidden lg:flex text-xl lg:text-6xl">
                 CHOOSE
@@ -334,7 +400,7 @@ const PacksPage = () => {
       )}
 
       {keep === 2 && oldCard ? (
-        <div className="flex flex-col items-center justify-center absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 gap-4">
+        <div className="flex flex-col scale-50 lg:scale-100 items-center justify-center absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 gap-4">
           <h1 className="text-6xl font-concent">Choose 1 to keep</h1>
           <div className="flex items-center justify-center gap-6">
             {/* New Card */}

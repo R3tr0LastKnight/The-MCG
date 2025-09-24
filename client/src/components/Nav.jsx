@@ -71,7 +71,7 @@ const Nav = () => {
     } catch (err) {
       console.error("Google login error:", err);
     }
-    // window.location.reload();
+    window.location.reload();
   };
 
   // 🔹 After page reload (in App.js or a top-level component):

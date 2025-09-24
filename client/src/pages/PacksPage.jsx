@@ -124,24 +124,27 @@ const PacksPage = () => {
       const pushCard = async () => {
         try {
           if (!oldCard) {
+            console.log("oldcard");
+
             // no duplicate → just save new card
-            console.log("card Data :", cardData2);
+            console.log("card Data 2 :", cardData2);
 
             await saveOrReplaceCard(auth.currentUser?.uid, {
               newCard: cardData2?.data,
             });
-          } else if (choosin === 1) {
+          }
+          if (choosin === 1) {
             // replace oldCard with cardData2
             await saveOrReplaceCard(auth.currentUser?.uid, {
               newCard: cardData2?.data,
               oldCard: oldCard?.data,
             });
+            setKeep(3);
           } else if (choosin === 2) {
             // keep old card → no backend update
             console.log("Kept old card, no backend update");
+            setKeep(3);
           }
-
-          setKeep(3);
         } catch (err) {
           console.error("Error saving card:", err);
         }
@@ -497,27 +500,32 @@ const PacksPage = () => {
       {keep === 3 ? (
         <>
           <div className=" h-[400px] w-[350px] shadow-[0_3px_10px_rgb(0,0,0,0.2)] absolute  p-4 rounded-lg left-1/2 top-1/2 transform -translate-y-1/2 -translate-x-1/2 !bg-white lg:bg-transparent z-50 lg:left-[35%] lg:top-64 lg:translate-x-0 items-center  flex gap-2 flex-col ">
-            <div
-              onClick={() => {
-                window.location.reload();
-              }}
-              className="absolute top-3 right-3 lg:-top-10 lg:-right-10 cursor-pointer"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="size-6"
+            {progress || choosin === 2 ? (
+              <div
+                onClick={() => {
+                  window.location.reload();
+                }}
+                className="absolute top-3 right-3 lg:-top-10 lg:-right-10 cursor-pointer"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6 18 18 6M6 6l12 12"
-                />
-              </svg>
-            </div>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="size-6"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 18 18 6M6 6l12 12"
+                  />
+                </svg>
+              </div>
+            ) : (
+              <></>
+            )}
+
             <h1 className="font-concent lg:flex text-3xl lg:text-6xl h-1/4 underline whitespace-nowrap ">
               {choosin === 1 ? <>XP Gained</> : <>No XP Gained</>}
             </h1>

@@ -8,43 +8,50 @@ import CollectionPage from "./CollectionPage.jsx";
 import PacksPage from "./PacksPage.jsx";
 import AccountPage from "./AccountPage.jsx";
 import MusicPlayer from "../components/MusicPlayer.jsx";
-import PackOpening from "./PackOpening.jsx";
+import TargetCursor from "../components/ui/TargetCursor.jsx";
+// import PackOpening from "./PackOpening.jsx";
 
 const IndexPage = () => {
   const [page, setPage] = useState("index");
 
   return (
-    <div className="flex  py-4 lg:max-h-[86vh] lg:min-h-[86vh] max-h-[74vh] min-h-[74vh] relative">
-      <DotPattern
-        glow={false}
-        className={cn(
-          "[mask-image:radial-gradient(600px_circle_at_center,black,transparent)]"
-        )}
-      />
-      <Drawer page={page} setPage={setPage} />
-      {/* <div className="hidden lg:flex">
+    <>
+      <TargetCursor spinDuration={2} hideDefaultCursor={true} />
+      <div className="flex  py-4 lg:max-h-[86vh] lg:min-h-[86vh] max-h-[74vh] min-h-[74vh] relative">
+        <div className="absolute top-3 right-3 lg:top-2 lg:right-10 cursor-pointer cursor-target border shadow-[0_3px_10px_rgb(0,0,0,0.2)] rounded-lg bg-white px-2 py-2">
+          Unstick Cursor
+        </div>
+        <DotPattern
+          glow={false}
+          className={cn(
+            "[mask-image:radial-gradient(600px_circle_at_center,black,transparent)]"
+          )}
+        />
+        <Drawer page={page} setPage={setPage} />
+        {/* <div className="hidden lg:flex">
         <MusicPlayer />
       </div> */}
-      {page === "index" ? (
-        <PacksPage />
-      ) : page === "collection" ? (
-        <>
-          <CollectionPage page={page} />
-        </>
-      ) : page === "packs" ? (
-        <>
+        {page === "index" ? (
           <PacksPage />
-        </>
-      ) : page === "account" ? (
-        <>
-          <AccountPage />
-        </>
-      ) : page === "logout" ? (
-        <></>
-      ) : (
-        <></>
-      )}
-    </div>
+        ) : page === "collection" ? (
+          <>
+            <CollectionPage page={page} />
+          </>
+        ) : page === "packs" ? (
+          <>
+            <PacksPage />
+          </>
+        ) : page === "account" ? (
+          <>
+            <AccountPage />
+          </>
+        ) : page === "logout" ? (
+          <></>
+        ) : (
+          <></>
+        )}
+      </div>
+    </>
   );
 };
 

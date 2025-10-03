@@ -131,7 +131,7 @@ const Pack = ({
     return (
       <motion.div
         key={albumIndex}
-        className={` rounded-lg absolute ${
+        className={` rounded-lg absolute cursor-target ${
           position !== "center" ? "pointer-events-none" : "cursor-pointer"
         }`}
         style={{
@@ -198,7 +198,7 @@ const Pack = ({
       {!pack ? (
         <button
           onClick={handlePrev}
-          className="absolute left-4 text-4xl z-40 select-none bg-black/50 text-white p-2 rounded-full hover:bg-black"
+          className="cursor-target absolute left-4 text-4xl z-40 select-none bg-black/50 text-white p-2 rounded-full hover:bg-black"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -233,7 +233,7 @@ const Pack = ({
       {!pack ? (
         <button
           onClick={handleNext}
-          className="absolute right-4 text-4xl z-40 select-none bg-black/50 text-white p-2 rounded-full hover:bg-black"
+          className="cursor-target absolute right-4 text-4xl z-40 select-none bg-black/50 text-white p-2 rounded-full hover:bg-black"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

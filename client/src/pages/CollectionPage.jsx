@@ -175,7 +175,7 @@ export default function CollectionPage({ page }) {
               <div>Loading...</div>
             ) : (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6 pb-6">
                   {Array.isArray(cards) && cards.length > 0 ? (
                     cards.map((card, i) => <InnerCard key={i} card={card} />)
                   ) : (
@@ -189,7 +189,7 @@ export default function CollectionPage({ page }) {
                     <button
                       key={idx + 1}
                       onClick={() => handlePageChange(idx + 1)}
-                      className={`px-3 py-1 rounded ${
+                      className={`px-3 py-1 rounded cursor-target ${
                         pagination.currentPage === idx + 1
                           ? "bg-blue-600 text-white"
                           : "bg-gray-200 hover:bg-gray-300"

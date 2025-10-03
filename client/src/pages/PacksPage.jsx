@@ -287,7 +287,7 @@ const PacksPage = () => {
   }
 
   return (
-    <div className="transition ">
+    <div className=" ">
       {!showButton && !burned && (
         <SplashCursor
           SIM_RESOLUTION={32} // ↓ lower = faster (default is often 128+)
@@ -400,7 +400,7 @@ const PacksPage = () => {
               backgroundColor: packData.bgColor,
               color: packData.textColor,
             }}
-            className="px-4 py-1 text-lg rounded-lg cursor-pointer absolute bottom-0 transition"
+            className="px-4 py-1 text-lg rounded-lg cursor-pointer absolute bottom-0  cursor-target"
             onClick={handleOpenPackClick}
           >
             Open Pack
@@ -430,7 +430,7 @@ const PacksPage = () => {
                     onClick={() => {
                       setKeep(2);
                     }}
-                    className=" border py-2 px-3 rounded bg-white hover:text-white hover:bg-black"
+                    className="cursor-target border py-2 px-3 rounded bg-white hover:text-white hover:bg-black"
                   >
                     KEEP
                   </div>
@@ -442,7 +442,7 @@ const PacksPage = () => {
                   onClick={() => {
                     window.location.reload();
                   }}
-                  className=" border py-2 px-3 rounded bg-white hover:text-white hover:bg-black"
+                  className="cursor-target border py-2 px-3 rounded bg-white hover:text-white hover:bg-black"
                 >
                   DISCARD
                 </div>
@@ -465,7 +465,7 @@ const PacksPage = () => {
               <div className="flex items-center whitespace-nowrap relative z-40 text-center justify-center w-12 h-40 bg-white  rounded-tl-lg rounded-bl-lg shadow-[5px_3px_10px_rgb(0,0,0,0.2)]">
                 <div className="-rotate-90 font-poppins">New Shiny Card</div>
               </div>
-              <div className="cursor-pointer">
+              <div className="cursor-pointer cursor-target">
                 <CardReRender
                   cardData={cardData2}
                   type="new"
@@ -478,7 +478,7 @@ const PacksPage = () => {
             {/* Old Card UI */}
             <div>or</div>
             <div className="z-50 flex relative items-center gap-0">
-              <div className="cursor-pointer">
+              <div className="cursor-pointer cursor-target">
                 <CardReRender
                   cardData={oldCard}
                   type="old"
@@ -504,7 +504,7 @@ const PacksPage = () => {
                 onClick={() => {
                   window.location.reload();
                 }}
-                className="absolute top-3 right-3 lg:-top-10 lg:-right-10 cursor-pointer"
+                className="absolute top-3 right-3 lg:-top-10 lg:-right-10 cursor-pointer cursor-target"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

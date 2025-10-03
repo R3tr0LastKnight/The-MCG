@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "tsx": "false",
+  "tailwind": {
+    "config": "tailwind.config.js",
+    "css": "./index.css"
+  }
+}

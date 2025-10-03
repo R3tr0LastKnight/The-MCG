@@ -75,6 +75,7 @@ const Drawer = ({ page, setPage }) => {
               key={i}
               className="hover:border-b border-dotted transition cursor-pointer"
               onClick={() => {
+                setIsDrawOpen(false);
                 if (item === "Home") {
                   setPage("index");
                 } else if (item === "Collection") {

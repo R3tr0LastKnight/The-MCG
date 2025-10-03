@@ -92,7 +92,7 @@ exports.addExp = async (req, res) => {
 
 exports.fetchUserAlbums = async (req, res) => {
   try {
-    const { uid } = req.query;
+    const { uid, page = 1, limit = 8 } = req.query;
     if (!uid) return res.status(400).json({ error: "uid required" });
 
     const user = await User.findOne({ uid });
@@ -100,29 +100,44 @@ exports.fetchUserAlbums = async (req, res) => {
 
     const accessToken = await getValidSpotifyAccessToken();
 
-    // reverse cards so latest comes first
-    const enrichedCards = await Promise.all(
-      user.cards
-        .slice() // copy
-        .reverse()
-        .map(async (card) => {
-          const trackRes = await fetch(
-            `https://api.spotify.com/v1/tracks/${card.trackId}`,
-            { headers: { Authorization: `Bearer ${accessToken}` } }
-          );
-          const track = await trackRes.json();
+    // pagination
+    const pageNum = parseInt(page, 10);
+    const limitNum = parseInt(limit, 10);
+    const startIndex = (pageNum - 1) * limitNum;
+    const endIndex = startIndex + limitNum;
 
-          const albumRes = await fetch(
-            `https://api.spotify.com/v1/albums/${card.albumId}`,
-            { headers: { Authorization: `Bearer ${accessToken}` } }
-          );
+    const totalCards = user.cards.length;
+    const totalPages = Math.ceil(totalCards / limitNum);
+
+    const pagedCards = user.cards.slice().reverse().slice(startIndex, endIndex);
+
+    const enrichedCards = await Promise.all(
+      pagedCards.map(async (card) => {
+        try {
+          const [trackRes, albumRes] = await Promise.all([
+            fetch(`https://api.spotify.com/v1/tracks/${card.trackId}`, {
+              headers: { Authorization: `Bearer ${accessToken}` },
+            }),
+            fetch(`https://api.spotify.com/v1/albums/${card.albumId}`, {
+              headers: { Authorization: `Bearer ${accessToken}` },
+            }),
+          ]);
+
+          const track = await trackRes.json();
           const album = await albumRes.json();
 
           return { ...card.toObject(), track, album };
-        })
+        } catch (err) {
+          console.error("Spotify fetch failed for card:", card, err);
+          return { ...card.toObject(), track: null, album: null }; // fallback
+        }
+      })
     );
 
-    res.json(enrichedCards);
+    res.json({
+      cards: enrichedCards,
+      pagination: { totalCards, totalPages, currentPage: pageNum },
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to fetch user albums" });

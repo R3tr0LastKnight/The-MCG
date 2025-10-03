@@ -1,5 +1,5 @@
 import React, { Suspense, useEffect, useMemo, useRef, useState } from "react";
-import { fetchUserEnrichedCards } from "../api/spotify";
+import { fetchUserAlbums } from "../api/spotify"; // ✅ new api helper
 import { auth } from "../firebase";
 import LiquidChrome from "../components/ui/LiquidChrome";
 import Iridescence from "../components/ui/Iridescence";
@@ -11,28 +11,36 @@ import { useUser } from "../utils/userContext";
 export default function CollectionPage({ page }) {
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { user, setUser } = useUser();
+  const { user } = useUser();
+  const [pagination, setPagination] = useState({
+    totalPages: 1,
+    currentPage: 1,
+  });
+
+  // fetch cards with page + limit
+  const fetchCards = async (pageNum = 1) => {
+    const currentUser = auth.currentUser;
+    if (!currentUser) return;
+
+    try {
+      setLoading(true);
+      const data = await fetchUserAlbums(currentUser.uid, pageNum, 9);
+      console.log("Fetched user albums:", data); // 👈 check here
+      setCards(Array.isArray(data.cards) ? data.cards : []);
+      setPagination(data.pagination || { totalPages: 1, currentPage: 1 });
+    } catch (err) {
+      console.error("Failed to load collection:", err);
+      setCards([]); // safe fallback
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    if (page !== "collection") return;
-
-    const fetchCards = async () => {
-      const user = auth.currentUser;
-      if (!user) return;
-
-      try {
-        setLoading(true);
-        const enriched = await fetchUserEnrichedCards(user.uid);
-        setCards(enriched);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCards();
-  }, [page]);
+    if (page === "collection" && user) {
+      fetchCards(1);
+    }
+  }, [page, user]);
 
   /** Card component handles its own background color */
   const InnerCard = React.memo(({ card }) => {
@@ -151,16 +159,49 @@ export default function CollectionPage({ page }) {
     );
   });
 
+  const handlePageChange = (newPage) => {
+    if (newPage !== pagination.currentPage) {
+      fetchCards(newPage);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full w-full lg:px-16 justify-center items-center bg-transparent">
       <h1 className="text-6xl font-concent mb-4">Collection</h1>
       <div className="flex-1 w-f overflow-auto">
         {user ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-6">
-            {cards.map((card, i) => (
-              <InnerCard key={i} card={card} />
-            ))}
-          </div>
+          <>
+            {loading ? (
+              <div>Loading...</div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-6">
+                  {Array.isArray(cards) && cards.length > 0 ? (
+                    cards.map((card, i) => <InnerCard key={i} card={card} />)
+                  ) : (
+                    <div>No cards found</div>
+                  )}
+                </div>
+
+                {/* Pagination */}
+                <div className="flex justify-center mt-4 space-x-2">
+                  {Array.from({ length: pagination.totalPages }, (_, idx) => (
+                    <button
+                      key={idx + 1}
+                      onClick={() => handlePageChange(idx + 1)}
+                      className={`px-3 py-1 rounded ${
+                        pagination.currentPage === idx + 1
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-200 hover:bg-gray-300"
+                      }`}
+                    >
+                      {idx + 1}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </>
         ) : (
           <>Login to view your collection</>
         )}

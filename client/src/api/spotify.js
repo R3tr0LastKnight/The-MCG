@@ -132,3 +132,42 @@ export async function saveOrReplaceCard(
 
   return data;
 }
+
+export async function fetchAllArtists() {
+  const res = await fetch(
+    `${process.env.REACT_APP_BACKEND_URL}/api/spotify/artists`
+  );
+  const data = await res.json();
+
+  if (!res.ok) throw new Error(data.error || "Failed to fetch artists");
+  return data; // array of artist names
+}
+
+// export async function fetchTracksByArtist(artist) {
+//   const res = await fetch(
+//     `${
+//       process.env.REACT_APP_BACKEND_URL
+//     }/api/spotify/tracks-by-artist?artist=${encodeURIComponent(artist)}`
+//   );
+//   const data = await res.json();
+
+//   if (!res.ok)
+//     throw new Error(data.error || "Failed to fetch tracks by artist");
+//   return data; // array of { track, album }
+// }
+
+export async function fetchTracksByArtist(artist, page = 1, limit = 6) {
+  const res = await fetch(
+    `${process.env.REACT_APP_BACKEND_URL}/api/tracks-by-artist?artist=${artist}&page=${page}&limit=${limit}`
+  );
+  if (!res.ok) throw new Error("Failed to fetch tracks");
+  return await res.json();
+}
+
+export async function fetchUserAlbums(uid, page = 1, limit = 9) {
+  const res = await fetch(
+    `${process.env.REACT_APP_BACKEND_URL}/api/users/albums?uid=${uid}&page=${page}&limit=${limit}`
+  );
+  if (!res.ok) throw new Error("Failed to fetch user albums");
+  return await res.json();
+}

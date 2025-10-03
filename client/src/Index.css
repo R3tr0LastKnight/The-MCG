@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+/* --- Custom font --- */
 .bitcount-strong-wide {
   @apply font-bitcount;
   font-weight: 800;
@@ -10,17 +11,16 @@
   font-variation-settings: "slnt" -2, "CRSV" 1, "ELSH" 60, "ELXP" 80;
 }
 
+/* --- Global reset --- */
 * {
   margin: 0;
   padding: 0;
-  /* border: 0; */
   list-style: none;
-  /* color: #fff; */
   text-decoration: none;
   transition: all 0.5s;
 }
 
-/* styles.css */
+/* --- Effects --- */
 .holo-effect {
   background: linear-gradient(270deg, #ff00f7, #00e1ff, #fff600);
   background-size: 600% 600%;
@@ -83,17 +83,55 @@
   filter: invert(1);
 }
 
-/* Hide scrollbar for WebKit browsers (Chrome, Safari, Edge, Opera) */
+/* --- Hide scrollbar --- */
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
-
-/* Hide scrollbar for IE and Edge */
 .scrollbar-hide {
   -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-/* Hide scrollbar for Firefox */
-.scrollbar-hide {
-  scrollbar-width: none;
+/* --- Custom CSS variables --- */
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+
+    --radius: 0.5rem;
+  }
+
+  /* --- Global borders --- */
+  /* * {
+    border: 1px solid hsl(var(--border));
+  } */
+
+  /* --- Body background & text --- */
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar-button {
+  display: none;
 }

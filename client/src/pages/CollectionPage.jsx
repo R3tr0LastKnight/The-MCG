@@ -166,7 +166,7 @@ export default function CollectionPage({ page }) {
   };
 
   return (
-    <div className="flex flex-col h-full w-full lg:px-16 justify-center items-center bg-transparent">
+    <div className="flex flex-col h-full w-full lg:px-16 justify-center items-center bg-transparent relative z-20">
       <h1 className="text-6xl font-concent mb-4">Collection</h1>
       <div className="flex-1 w-f overflow-auto">
         {user ? (
@@ -175,7 +175,7 @@ export default function CollectionPage({ page }) {
               <div>Loading...</div>
             ) : (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6 pb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
                   {Array.isArray(cards) && cards.length > 0 ? (
                     cards.map((card, i) => <InnerCard key={i} card={card} />)
                   ) : (
@@ -184,19 +184,19 @@ export default function CollectionPage({ page }) {
                 </div>
 
                 {/* Pagination */}
-                <div className="flex justify-center mt-4 space-x-2">
+                <div className="grid grid-cols-5 lg:grid-cols-10 justify-center mt-4 gap-2 text-center">
                   {Array.from({ length: pagination.totalPages }, (_, idx) => (
-                    <button
+                    <div
                       key={idx + 1}
                       onClick={() => handlePageChange(idx + 1)}
                       className={`px-3 py-1 rounded cursor-target ${
                         pagination.currentPage === idx + 1
-                          ? "bg-blue-600 text-white"
+                          ? "bg-black text-white"
                           : "bg-gray-200 hover:bg-gray-300"
                       }`}
                     >
                       {idx + 1}
-                    </button>
+                    </div>
                   ))}
                 </div>
               </>

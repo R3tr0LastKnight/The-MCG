@@ -111,9 +111,9 @@ const Nav = () => {
     <div className="flex items-center justify-between w-screen px-4 !lg:max-h-[10vh] py-4 shadow-[0_3px_10px_rgb(0,0,0,0.2)]">
       <div
         onClick={() => window.location.reload()}
-        className="text-5xl font- font-bitcount cursor-pointer w-1/2"
+        className="text-5xl font- font-bitcount   w-1/2"
       >
-        The MCG
+        <div className="cursor-target w-fit">The MCG</div>
       </div>
       <div className="flex flex-col lg:flex-row lg:mr-4 items-center gap-1 lg:gap-4 ">
         {login && user ? (
@@ -163,7 +163,7 @@ const Nav = () => {
         ) : (
           <div
             onClick={handleGoogleLogin}
-            className="border border-black rounded-xl cursor-pointer hover:bg-black hover:text-white group hover:shadow-[0_4px_10px_rgb(0,0,0,0.4)]"
+            className="border border-black rounded-xl   hover:bg-black hover:text-white group hover:shadow-[0_4px_10px_rgb(0,0,0,0.4)]"
           >
             <div className="flex justify-center items-center gap-2 py-1 px-2 ">
               Google Login

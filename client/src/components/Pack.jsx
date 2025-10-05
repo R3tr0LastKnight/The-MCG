@@ -132,7 +132,7 @@ const Pack = ({
       <motion.div
         key={albumIndex}
         className={` rounded-lg absolute cursor-target ${
-          position !== "center" ? "pointer-events-none" : "cursor-pointer"
+          position !== "center" ? "pointer-events-none" : " "
         }`}
         style={{
           backgroundColor: colorSet.bgColor,
@@ -196,7 +196,7 @@ const Pack = ({
       className="relative w-full h-full flex justify-center items-center overflow-hidden"
     >
       {!pack ? (
-        <button
+        <div
           onClick={handlePrev}
           className="cursor-target absolute left-4 text-4xl z-40 select-none bg-black/50 text-white p-2 rounded-full hover:bg-black"
         >
@@ -214,7 +214,7 @@ const Pack = ({
               d="m18.75 4.5-7.5 7.5 7.5 7.5m-6-15L5.25 12l7.5 7.5"
             />
           </svg>
-        </button>
+        </div>
       ) : (
         <></>
       )}
@@ -231,7 +231,7 @@ const Pack = ({
         )}
       </div>
       {!pack ? (
-        <button
+        <div
           onClick={handleNext}
           className="cursor-target absolute right-4 text-4xl z-40 select-none bg-black/50 text-white p-2 rounded-full hover:bg-black"
         >
@@ -249,7 +249,7 @@ const Pack = ({
               d="m5.25 4.5 7.5 7.5-7.5 7.5m6-15 7.5 7.5-7.5 7.5"
             />
           </svg>
-        </button>
+        </div>
       ) : (
         <></>
       )}

@@ -73,7 +73,7 @@ const Drawer = ({ page, setPage }) => {
           {menuItems.map((item, i) => (
             <li
               key={i}
-              className="hover:border-b border-dotted transition cursor-pointer cursor-target"
+              className="hover:border-b border-dotted transition   cursor-target"
               onClick={() => {
                 setIsDrawOpen(false);
                 if (item === "Home") {
@@ -98,7 +98,7 @@ const Drawer = ({ page, setPage }) => {
       <div
         ref={buttonRef}
         onClick={() => setIsDrawOpen(!isDrawOpen)}
-        className="cursor-target flex items-center relative z-40 top-36 justify-center w-12 h-20 bg-white cursor-pointer rounded-tr-lg rounded-br-lg shadow-[5px_3px_10px_rgb(0,0,0,0.2)]"
+        className="cursor-target flex items-center relative z-40 top-36 justify-center w-12 h-20 bg-white   rounded-tr-lg rounded-br-lg shadow-[5px_3px_10px_rgb(0,0,0,0.2)]"
       >
         <div className="rotate-90 font-poppins ">menu</div>
       </div>

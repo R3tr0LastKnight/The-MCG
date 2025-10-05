@@ -323,3 +323,79 @@ exports.getRandomTrackFromAlbum = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch random track" });
   }
 };
+
+exports.getAllPacks = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 9;
+    const skip = (page - 1) * limit;
+
+    const token = await getValidSpotifyAccessToken();
+
+    // Step 1: Flatten all artist-album pairs
+    const artistAlbums = await ArtistAlbums.find({}).sort({ createdAt: -1 });
+    const allPairs = [];
+    for (const doc of artistAlbums) {
+      const artist = doc.artist;
+      for (const album of doc.albums) {
+        allPairs.push({ artist, album });
+      }
+    }
+
+    const total = allPairs.length;
+    const totalPages = Math.ceil(total / limit);
+
+    // Step 2: Try to collect at least 9 valid enriched albums
+    const enriched = [];
+    let index = skip;
+
+    while (enriched.length < limit && index < allPairs.length) {
+      const batch = allPairs.slice(index, index + limit * 2); // small buffer
+      index += batch.length;
+
+      const results = await Promise.allSettled(
+        batch.map(async ({ artist, album }) => {
+          const query = encodeURIComponent(`album:${album} artist:${artist}`);
+          const url = `https://api.spotify.com/v1/search?q=${query}&type=album&limit=1`;
+
+          const response = await fetch(url, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await response.json();
+          const found = data.albums?.items?.[0];
+
+          if (found) {
+            return {
+              artist,
+              album: found.name,
+              cover: found.images?.[0]?.url || null,
+              spotifyUrl: found.external_urls?.spotify || null,
+            };
+          } else {
+            return null;
+          }
+        })
+      );
+
+      const valid = results
+        .filter((r) => r.status === "fulfilled" && r.value)
+        .map((r) => r.value);
+
+      enriched.push(...valid);
+    }
+
+    // Step 3: Slice final list to exactly 9
+    const finalPacks = enriched.slice(0, limit);
+
+    res.json({
+      packs: finalPacks,
+      pagination: {
+        totalPages,
+        currentPage: page,
+      },
+    });
+  } catch (err) {
+    console.error("Error fetching packs:", err);
+    res.status(500).json({ error: "Failed to fetch packs" });
+  }
+};

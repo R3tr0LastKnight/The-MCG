@@ -171,3 +171,13 @@ export async function fetchUserAlbums(uid, page = 1, limit = 9) {
   if (!res.ok) throw new Error("Failed to fetch user albums");
   return await res.json();
 }
+
+export async function fetchAllPacks(page = 1, limit = 9) {
+  const res = await fetch(
+    `${process.env.REACT_APP_BACKEND_URL}/api/spotify/all-packs?page=${page}&limit=${limit}`
+  );
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to fetch packs");
+  return data;
+}

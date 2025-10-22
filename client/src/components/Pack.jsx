@@ -3,7 +3,7 @@ import { fetchAllEnrichedAlbums } from "../api/spotify";
 import { FastAverageColor } from "fast-average-color";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSwipeable } from "react-swipeable";
-import html2canvas from "html2canvas";
+// import html2canvas from "html2canvas";
 
 const Pack = ({
   pack,
@@ -163,9 +163,12 @@ const Pack = ({
       >
         <div
           ref={position === "center" ? screenshotArea : null}
-          className="flex flex-col h-[400px] w-[300px] rounded-lg justify-center items-center gap-4 shadow-[0_3px_10px_rgb(0,0,0,0.2)]"
+          onDragStart={(e) => {
+            e.preventDefault();
+          }}
+          className="flex flex-col h-[400px] select-none w-[300px] rounded-lg justify-center items-center gap-4 shadow-[0_3px_10px_rgb(0,0,0,0.2)]"
         >
-          <div className="max-h-52 max-w-52 overflow-hidden">
+          <div className="max-h-52 max-w-52 overflow-hidden ">
             <img
               src={album?.cover}
               alt={`${album.album} cover`}

@@ -163,7 +163,7 @@ const Nav = () => {
         ) : (
           <div
             onClick={handleGoogleLogin}
-            className="border border-black rounded-xl   hover:bg-black hover:text-white group hover:shadow-[0_4px_10px_rgb(0,0,0,0.4)]"
+            className="border border-black rounded-xl   hover:bg-black hover:text-white group hover:shadow-[0_4px_10px_rgb(0,0,0,0.4)] cursor-target"
           >
             <div className="flex justify-center items-center gap-2 py-1 px-2 ">
               Google Login

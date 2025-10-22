@@ -64,7 +64,7 @@ const Card = ({
   const CardRandomization = () => {
     const borderColors = [
       { class: "bg-gray-300", chance: 15, bgSubId: 1, bxp: 10 },
-      { class: "bg-black ", chance: 20, bgSubId: 2, bxp: 15 },
+      { class: "bg-black", chance: 20, bgSubId: 2, bxp: 15 },
       { class: "bg-white", chance: 15, bgSubId: 3, bxp: 5 },
       { class: "bg-gray-500", chance: 15, bgSubId: 4, bxp: 5 },
       { class: "holo-effect", chance: 5, bgSubId: 5, bxp: 20 },
@@ -106,9 +106,16 @@ const Card = ({
       return list[list.length - 1];
     };
 
+    const borderPick = pickRandomWeighted(borderColors);
+    const effectPick = pickRandomWeighted(effects);
+
     return {
-      ...pickRandomWeighted(borderColors),
-      ...pickRandomWeighted(effects),
+      borderClass: borderPick.class,
+      bgSubId: borderPick.bgSubId,
+      bxp: borderPick.bxp,
+      effectClass: effectPick.class,
+      effectId: effectPick.effectId,
+      exp: effectPick.exp || 0,
     };
   };
 
@@ -132,8 +139,15 @@ const Card = ({
     }
   };
 
+  // ✅ properly store randomized border values
   const [{ borderClass, effectClass, bgSubId, effectId, exp, bxp }] =
     useState(CardRandomization);
+
+  // ✅ prevent re-creating shaderColors every frame
+  const shaderRef = useRef(shaderColors);
+  useEffect(() => {
+    shaderRef.current = shaderColors;
+  }, [shaderColors]);
 
   useEffect(() => {
     if (track) {
@@ -199,13 +213,16 @@ const Card = ({
     }
   }, [pack, passedTrack, border, bgSubId, effectId]);
 
+  // ✅ fixed background (no flicker)
   const background = useMemo(() => {
+    const shader = shaderRef.current;
+
     if (border === 1) return null;
     if (border === 2) {
       setBorderXp(30);
       return (
         <LiquidChrome
-          baseColor={shaderColors.waveColor}
+          baseColor={shader.waveColor}
           speed={1}
           amplitude={0.6}
           interactive={false}
@@ -216,7 +233,8 @@ const Card = ({
       setBorderXp(25);
       return (
         <Iridescence
-          color={shaderColors.waveColor}
+          key="iridescence"
+          color={shader.waveColor}
           mouseReact={false}
           amplitude={0.1}
           speed={1.0}
@@ -227,7 +245,7 @@ const Card = ({
       setBorderXp(20);
       return (
         <Dither
-          waveColor={shaderColors.waveColor}
+          waveColor={shader.waveColor}
           disableAnimation={false}
           enableMouseInteraction={false}
           mouseRadius={0.3}
@@ -251,7 +269,7 @@ const Card = ({
       );
     }
     return null;
-  }, [border, shaderColors]);
+  }, [border]);
 
   const InnerCard = () => {
     return (
@@ -294,10 +312,12 @@ const Card = ({
           : "absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2"
       }  gap-4`}
     >
-      <div className="relative h-[390px] w-[290px] rounded-lg shadow-[0_3px_10px_rgb(0,0,0,0.2)] overflow-hidden">
-        <div
-          className={`absolute inset-0 -z-10 pointer-events-none ${borderClass} ${effectClass}`}
-        >
+      <div
+        className={`relative h-[390px] w-[290px] rounded-lg overflow-hidden shadow-[0_3px_10px_rgb(0,0,0,0.2)] ${
+          borderClass || ""
+        }`}
+      >
+        <div className="absolute inset-0 -z-10 pointer-events-none">
           <Suspense fallback={null}>{background}</Suspense>
         </div>
 

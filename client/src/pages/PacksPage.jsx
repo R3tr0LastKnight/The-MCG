@@ -88,12 +88,10 @@ const PacksPage = () => {
                   return (
                     <div
                       key={i}
-                      className="rounded-xl cursor-target transition-all duration-500 shadow-lg    flex flex-col justify-center items-center"
+                      className="rounded-xl cursor-target transition-all duration-500 shadow-lg h-[400px] select-none w-[300px] flex flex-col justify-center items-center"
                       style={{
                         backgroundColor: colorSet.bgColor,
                         color: colorSet.textColor,
-                        width: "300px",
-                        height: "420px",
                       }}
                     >
                       <div className="flex flex-col justify-center items-center gap-4 p-4 relative">
@@ -106,7 +104,7 @@ const PacksPage = () => {
                           />
                         </div>
                         <div className="flex flex-col text-center">
-                          <h1 className="text-3xl font-concent px-2">
+                          <h1 className="text-3xl font-concent px-2 line-clamp-3">
                             {pack?.album}
                           </h1>
                           <h2 className="text-lg font-libertinus">

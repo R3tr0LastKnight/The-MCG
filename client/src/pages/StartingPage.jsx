@@ -104,15 +104,58 @@ const PacksPage = () => {
     }
 
     try {
-      const style = getComputedStyle(screenshotArea.current);
-      const bgColor = packData.bgColor; // fallback to white
+      // ✅ 1. Ensure fonts are fully loaded before capture
+      if (document.fonts && document.fonts.ready) {
+        console.log("⏳ Waiting for fonts to finish loading...");
+        await document.fonts.ready;
+        console.log("✅ Fonts loaded");
+      }
 
-      const dataUrl = await htmlToImage.toPng(screenshotArea.current, {
-        quality: 1,
-        backgroundColor: bgColor,
+      // ✅ 2. Clone all Google Font <link> elements and inline their CSS text
+      const fontLinks = Array.from(
+        document.querySelectorAll('link[href*="fonts.googleapis.com"]')
+      );
+      for (const link of fontLinks) {
+        try {
+          const res = await fetch(link.href, { mode: "cors" });
+          const cssText = await res.text();
+          const style = document.createElement("style");
+          style.textContent = cssText;
+          document.head.appendChild(style);
+        } catch (err) {
+          console.warn("⚠️ Failed to inline font CSS:", link.href, err);
+        }
+      }
+
+      // ✅ 3. Filter out only accessible styleSheets
+      const safeSheets = Array.from(document.styleSheets).filter((sheet) => {
+        try {
+          void sheet.cssRules;
+          return true;
+        } catch {
+          return false;
+        }
       });
 
+      // Temporarily override document.styleSheets
+      const originalSheets = document.styleSheets;
+      Object.defineProperty(document, "styleSheets", {
+        value: safeSheets,
+        configurable: true,
+      });
+
+      // ✅ 4. Capture the element
+      const dataUrl = await htmlToImage.toPng(screenshotArea.current, {
+        backgroundColor: packData.bgColor || "#ffffff",
+        cacheBust: true,
+        quality: 1,
+      });
+
+      // ✅ 5. Restore state
+      delete document.styleSheets;
+
       setImgSrc(dataUrl);
+      console.log("✅ Capture succeeded, fonts included");
     } catch (err) {
       console.error("Capture failed:", err);
     }
@@ -498,7 +541,7 @@ const PacksPage = () => {
 
       {keep === 3 ? (
         <>
-          <div className=" h-[400px] w-[350px] shadow-[0_3px_10px_rgb(0,0,0,0.2)] absolute  p-4 rounded-lg left-1/2 top-1/2 transform -translate-y-1/2 -translate-x-1/2 !bg-white lg:bg-transparen z-40 lg:left-[35%] lg:top-64 lg:translate-x-0 items-center  flex gap-2 flex-col ">
+          <div className=" h-[400px] w-[350px] shadow-[0_3px_10px_rgb(0,0,0,0.2)] absolute  p-4 rounded-lg left-1/2 top-1/2 transform -translate-y-1/2 -translate-x-1/2 !bg-white lg:bg-transparen z-40 items-center  flex gap-2 flex-col ">
             {progress || choosin === 2 ? (
               <div
                 onClick={() => {

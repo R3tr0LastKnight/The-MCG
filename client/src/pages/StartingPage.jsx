@@ -15,6 +15,16 @@ import { auth } from "../firebase";
 import { useUser } from "../utils/userContext";
 import CardReRender from "../components/CardRerenderer";
 import SplashCursor from "../components/ui/SplashCursor";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "../components/ui/drawer.jsx";
 
 const PacksPage = () => {
   const [pack, setPack] = useState("");
@@ -42,6 +52,7 @@ const PacksPage = () => {
   const [packRevealed, setPackRevealed] = useState(false); // after clicking "Open Pack"
   const [hasOpened, setHasOpened] = useState(false); // after hover finishes
   const screenshotArea = useRef(null);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     if (imgSrc) {
@@ -50,6 +61,21 @@ const PacksPage = () => {
       setShowPack(true); // fallback to showing unopened pack
     }
   }, [imgSrc]);
+
+  // Handle drawer close
+  const handleOpenChange = (nextOpen) => {
+    // Detect drag down (user closes drawer manually)
+    if (!nextOpen && open) {
+      // reload page on drag close
+      window.location.reload();
+      return; // prevent state update so background click won’t close
+    }
+
+    // prevent closing by clicking overlay
+    if (!nextOpen) return;
+
+    setOpen(nextOpen);
+  };
 
   // click handler
   const handleOpenPackClick = async () => {
@@ -198,6 +224,11 @@ const PacksPage = () => {
 
   useEffect(() => {
     if (keep === 3) {
+      if (keep === 3) {
+        setOpen(true);
+      } else {
+        setOpen(false);
+      }
       async function addFinalExp() {
         try {
           // ✅ Skip XP if old card was chosen
@@ -330,310 +361,338 @@ const PacksPage = () => {
   }
 
   return (
-    <div className=" ">
-      {!showButton && !burned && (
-        <SplashCursor
-          SIM_RESOLUTION={32} // ↓ lower = faster (default is often 128+)
-          DYE_RESOLUTION={128} // good balance between smooth color and perf
-          CAPTURE_RESOLUTION={100} // keep modest
-          DENSITY_DISSIPATION={1} // colors fade gradually
-          VELOCITY_DISSIPATION={0.5} // smoother motion, less chaotic
-          PRESSURE={0.2} // stable fluid without jitter
-          PRESSURE_ITERATIONS={4} // reduce from heavy 20–30
-          CURL={15} // nice swirls without heavy calc
-          SPLAT_RADIUS={0.12} // smaller splats for less load
-          SPLAT_FORCE={2000} // reasonable force
-          SHADING={true} // keep shading for nice 3D feel
-          COLOR_UPDATE_SPEED={20} // not too frequent → better perf
-          BACK_COLOR={parseColor(packData.bgColor)}
-          TRANSPARENT={true} // lets background show throughbg
-          packColor={packData}
-        />
-      )}
-      <div className="flex flex-col items-center justify-center absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 ">
-        {showPack ? (
-          <div>
-            <Pack
-              pack={pack}
-              setPack={setPack}
-              imgSrc={imgSrc}
-              setImgSrc={setImgSrc}
-              handleCapture={handleCapture}
-              colors={colors}
-              setColors={setColors}
-              screenshotArea={screenshotArea}
-              packData={packData}
-              setPackData={setPackData}
-            />
-          </div>
-        ) : (
-          <>
-            {!showButton && !burned ? (
-              <div className="absolute bottom-56 whitespace-nowrap    ">
-                Hover over card to open it
-              </div>
-            ) : (
-              <></>
-            )}
-
-            <motion.div
-              initial={{ clipPath: "circle(100% at 50% 50%)" }}
-              animate={
-                hasOpened
-                  ? { clipPath: "circle(0% at 50% 50%)" }
-                  : { clipPath: "circle(100% at 50% 50%)" }
-              }
-              transition={{ duration: 2, ease: "easeInOut" }}
-              onAnimationComplete={() => {
-                if (hasOpened) setBurned(true);
-              }}
-              // ✅ unified hover / press support
-              onPointerEnter={(e) => {
-                if (e.pointerType === "mouse") startHold(e); // hover for desktop
-              }}
-              onPointerLeave={cancelHold}
-              onPointerDown={startHold} // press for touch or mouse
-              onPointerUp={cancelHold}
-              onPointerCancel={cancelHold}
-              // fallback for old browsers without PointerEvent
-              onTouchStart={(e) => {
-                if (typeof window !== "undefined" && !window.PointerEvent)
-                  startHold(e);
-              }}
-              onTouchEnd={(e) => {
-                if (typeof window !== "undefined" && !window.PointerEvent)
-                  cancelHold();
-              }}
-              style={{ touchAction: "none" }} // disable scroll during hold
-              className="h-[400px] w-[300px] rounded-lg justify-center items-center gap-4 shadow-[0_3px_10px_rgb(0,0,0,0.2)] absolute z-20"
-            >
-              <motion.img
-                className="absolute inset-0 w-full h-full object-cover rounded-lg"
-                src={imgSrc}
-                alt="Captured Pack"
+    <Drawer open={open} onOpenChange={handleOpenChange}>
+      <div className=" ">
+        {!showButton && !burned && (
+          <SplashCursor
+            SIM_RESOLUTION={32} // ↓ lower = faster (default is often 128+)
+            DYE_RESOLUTION={128} // good balance between smooth color and perf
+            CAPTURE_RESOLUTION={100} // keep modest
+            DENSITY_DISSIPATION={1} // colors fade gradually
+            VELOCITY_DISSIPATION={0.5} // smoother motion, less chaotic
+            PRESSURE={0.2} // stable fluid without jitter
+            PRESSURE_ITERATIONS={4} // reduce from heavy 20–30
+            CURL={15} // nice swirls without heavy calc
+            SPLAT_RADIUS={0.12} // smaller splats for less load
+            SPLAT_FORCE={2000} // reasonable force
+            SHADING={true} // keep shading for nice 3D feel
+            COLOR_UPDATE_SPEED={20} // not too frequent → better perf
+            BACK_COLOR={parseColor(packData.bgColor)}
+            TRANSPARENT={true} // lets background show throughbg
+            packColor={packData}
+          />
+        )}
+        <div className="flex flex-col items-center justify-center absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 ">
+          {showPack ? (
+            <div>
+              <Pack
+                pack={pack}
+                setPack={setPack}
+                imgSrc={imgSrc}
+                setImgSrc={setImgSrc}
+                handleCapture={handleCapture}
+                colors={colors}
+                setColors={setColors}
+                screenshotArea={screenshotArea}
+                packData={packData}
+                setPackData={setPackData}
               />
-              <motion.img
-                className="absolute inset-0 w-full h-full object-cover rounded-lg "
-                src={imgSrc}
-                alt="Captured Pack"
-              />
-            </motion.div>
-            <div className="absolute z-10">
-              {keep < 1 ? (
-                <Card
-                  pack={pack}
-                  imgSrc={imgSrc}
-                  setShowChoose={setShowChoose}
-                  keep={keep}
-                  setKeep={setKeep}
-                  setExp={setExp}
-                  setTempTrack={setTempTrack}
-                  cardData2={cardData2}
-                  setCardData2={setCardData2}
-                />
+            </div>
+          ) : (
+            <>
+              {!showButton && !burned ? (
+                <div className="absolute bottom-56 whitespace-nowrap    ">
+                  Hover over card to open it
+                </div>
               ) : (
                 <></>
               )}
-            </div>
-          </>
-        )}
-        {pack && !packRevealed && showButton && (
-          <div
-            style={{
-              backgroundColor: packData.bgColor,
-              color: packData.textColor,
-            }}
-            className="px-4 py-1 text-lg rounded-lg   absolute bottom-0  cursor-target"
-            onClick={handleOpenPackClick}
-          >
-            Open Pack
-          </div>
-        )}
-      </div>
-      {showChoose ? (
-        <>
-          {!user ? (
-            <>
-              <div className="absolute left-1/2 transform -translate-x-1/2 w-full text-center">
-                Login to save your cards
-              </div>
-            </>
-          ) : (
-            <></>
-          )}
 
-          {keep < 1 && burned === true ? (
-            <div className="absolute left-1/2  transform -translate-x-1/2 bottom-0  lg:left-[70%] lg:top-32 lg:translate-x-0 flex gap-2 flex-col ">
-              <h1 className="font-concent hidden lg:flex text-xl lg:text-6xl">
-                CHOOSE
-              </h1>
-              <div className="flex lg:flex-col gap-2">
-                {user ? (
-                  <div
-                    onClick={() => {
-                      setKeep(2);
-                    }}
-                    className="cursor-target border py-2 px-3 rounded bg-white hover:text-white hover:bg-black"
-                  >
-                    KEEP
-                  </div>
+              <motion.div
+                initial={{ clipPath: "circle(100% at 50% 50%)" }}
+                animate={
+                  hasOpened
+                    ? { clipPath: "circle(0% at 50% 50%)" }
+                    : { clipPath: "circle(100% at 50% 50%)" }
+                }
+                transition={{ duration: 2, ease: "easeInOut" }}
+                onAnimationComplete={() => {
+                  if (hasOpened) setBurned(true);
+                }}
+                // ✅ unified hover / press support
+                onPointerEnter={(e) => {
+                  if (e.pointerType === "mouse") startHold(e); // hover for desktop
+                }}
+                onPointerLeave={cancelHold}
+                onPointerDown={startHold} // press for touch or mouse
+                onPointerUp={cancelHold}
+                onPointerCancel={cancelHold}
+                // fallback for old browsers without PointerEvent
+                onTouchStart={(e) => {
+                  if (typeof window !== "undefined" && !window.PointerEvent)
+                    startHold(e);
+                }}
+                onTouchEnd={(e) => {
+                  if (typeof window !== "undefined" && !window.PointerEvent)
+                    cancelHold();
+                }}
+                style={{ touchAction: "none" }} // disable scroll during hold
+                className="h-[400px] w-[300px] rounded-lg justify-center items-center gap-4 shadow-[0_3px_10px_rgb(0,0,0,0.2)] absolute z-20 cursor-target"
+              >
+                <motion.img
+                  className="absolute inset-0 w-full h-full object-cover rounded-lg"
+                  src={imgSrc}
+                  alt="Captured Pack"
+                />
+                <motion.img
+                  className="absolute inset-0 w-full h-full object-cover rounded-lg "
+                  src={imgSrc}
+                  alt="Captured Pack"
+                />
+              </motion.div>
+              <div className="absolute z-10">
+                {keep < 1 ? (
+                  <Card
+                    pack={pack}
+                    imgSrc={imgSrc}
+                    setShowChoose={setShowChoose}
+                    keep={keep}
+                    setKeep={setKeep}
+                    setExp={setExp}
+                    setTempTrack={setTempTrack}
+                    cardData2={cardData2}
+                    setCardData2={setCardData2}
+                  />
                 ) : (
                   <></>
                 )}
-
-                <div
-                  onClick={() => {
-                    window.location.reload();
-                  }}
-                  className="cursor-target border py-2 px-3 rounded bg-white hover:text-white hover:bg-black"
-                >
-                  DISCARD
-                </div>
               </div>
-            </div>
-          ) : (
-            <></>
+            </>
           )}
-        </>
-      ) : (
-        <></>
-      )}
-
-      {keep === 2 && oldCard ? (
-        <div className="flex flex-col scale-50 lg:scale-100 items-center justify-center absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 gap-4">
-          <h1 className="text-6xl font-concent">Choose 1 to keep</h1>
-          <div className="flex items-center justify-center gap-6">
-            {/* New Card */}
-            <div className="z-50 flex relative items-center gap-0">
-              <div className="flex items-center whitespace-nowrap relative z-40 text-center justify-center w-12 h-40 bg-white  rounded-tl-lg rounded-bl-lg shadow-[5px_3px_10px_rgb(0,0,0,0.2)]">
-                <div className="-rotate-90 font-poppins">New Shiny Card</div>
-              </div>
-              <div className="  cursor-target">
-                <CardReRender
-                  cardData={cardData2}
-                  type="new"
-                  onClick={() => setChoosin(1)}
-                  className=" "
-                />
-              </div>
+          {pack && !packRevealed && showButton && (
+            <div
+              style={{
+                backgroundColor: packData.bgColor,
+                color: packData.textColor,
+              }}
+              className="px-4 py-1 text-lg rounded-lg   absolute bottom-0  cursor-target"
+              onClick={handleOpenPackClick}
+            >
+              Open Pack
             </div>
-
-            {/* Old Card UI */}
-            <div>or</div>
-            <div className="z-50 flex relative items-center gap-0">
-              <div className="  cursor-target">
-                <CardReRender
-                  cardData={oldCard}
-                  type="old"
-                  onClick={() => setChoosin(2)}
-                  className=" "
-                />
-              </div>
-              <div className="flex items-center whitespace-nowrap relative z-40 text-center justify-center w-12 h-56 bg-white  rounded-tr-lg rounded-br-lg shadow-[5px_3px_10px_rgb(0,0,0,0.2)]">
-                <div className="rotate-90 font-poppins">
-                  Card from your collection
-                </div>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
-      ) : null}
-
-      {keep === 3 ? (
-        <>
-          <div className=" h-[400px] w-[350px] shadow-[0_3px_10px_rgb(0,0,0,0.2)] absolute  p-4 rounded-lg left-1/2 top-1/2 transform -translate-y-1/2 -translate-x-1/2 !bg-white lg:bg-transparen z-40 items-center  flex gap-2 flex-col ">
-            {progress || choosin === 2 ? (
-              <div
-                onClick={() => {
-                  window.location.reload();
-                }}
-                className="absolute top-3 right-3 lg:-top-10 lg:-right-10   cursor-target"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="size-6"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6 18 18 6M6 6l12 12"
-                  />
-                </svg>
-              </div>
+        {showChoose ? (
+          <>
+            {!user ? (
+              <>
+                <div className="absolute left-1/2 transform -translate-x-1/2 w-full text-center">
+                  Login to save your cards
+                </div>
+              </>
             ) : (
               <></>
             )}
 
-            <h1 className="font-concent lg:flex text-3xl lg:text-6xl h-1/4 underline whitespace-nowrap ">
-              {choosin === 1 ? <>XP Gained</> : <>No XP Gained</>}
-            </h1>
-            <div className="text-center">
-              {choosin === 2 ? (
-                <div className="h-[15%] ">
-                  You've choosen to keep card from your collection
-                </div>
-              ) : (
-                <></>
-              )}
-            </div>
-            <div className="flex flex-col justify-center h-2/4 w-full px-4 gap-2">
-              <div className="flex flex-col gap-2">
-                <div className="text-xl font-semibold grid grid-cols-1">
-                  <p>
-                    <span className="font-bold">Album:</span>{" "}
-                    {tempTrack?.album.name}
-                  </p>
-                  <p>
-                    <span className="font-bold">Track:</span>{" "}
-                    {tempTrack?.track.name}
-                  </p>
-                  <p>
-                    <span className="font-bold">Artist:</span>{" "}
-                    {tempTrack?.album.artist}
-                  </p>
-                  <p>
-                    <span className="font-bold">Popularity:</span>{" "}
-                    {tempTrack?.track.popularity}
-                  </p>
-                  {choosin === 1 ? (
-                    <>
-                      <p>
-                        <span className="font-bold">XP:</span> {exp}
-                      </p>
-                    </>
+            {keep < 1 && burned === true ? (
+              <div className="absolute left-1/2  transform -translate-x-1/2 bottom-0  lg:left-[70%] lg:top-32 lg:translate-x-0 flex gap-2 flex-col ">
+                <h1 className="font-concent hidden lg:flex text-xl lg:text-6xl">
+                  CHOOSE
+                </h1>
+                <div className="flex lg:flex-col gap-2">
+                  {user ? (
+                    <div
+                      onClick={() => {
+                        setKeep(2);
+                      }}
+                      className="cursor-target border py-2 px-3 rounded bg-white hover:text-white hover:bg-black"
+                    >
+                      KEEP
+                    </div>
                   ) : (
                     <></>
                   )}
-                </div>
 
-                {choosin === 1 ? (
-                  <>
-                    <div className="text-lg font-semibold">
-                      Level {userLevel}
-                    </div>
-                    <Progress
-                      value={progress}
-                      className="bg-white border [&>div]:bg-black transition-all duration-1000 ease-out"
-                    />
-                    <div className="text-sm text-gray-600">
-                      {Math.round(progress)}%
-                    </div>
-                  </>
-                ) : (
-                  <></>
-                )}
+                  <div
+                    onClick={() => {
+                      window.location.reload();
+                    }}
+                    className="cursor-target border py-2 px-3 rounded bg-white hover:text-white hover:bg-black"
+                  >
+                    DISCARD
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <></>
+            )}
+          </>
+        ) : (
+          <></>
+        )}
+
+        {keep === 2 && oldCard ? (
+          <div className="flex flex-col scale-50 lg:scale-100 items-center justify-center absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 gap-4">
+            <h1 className="text-6xl font-concent">Choose 1 to keep</h1>
+            <div className="flex items-center justify-center gap-6">
+              {/* New Card */}
+              <div className="z-50 flex relative items-center gap-0">
+                <div className="flex items-center whitespace-nowrap relative z-40 text-center justify-center w-12 h-40 bg-white  rounded-tl-lg rounded-bl-lg shadow-[5px_3px_10px_rgb(0,0,0,0.2)]">
+                  <div className="-rotate-90 font-poppins">New Shiny Card</div>
+                </div>
+                <div className="  cursor-target">
+                  <CardReRender
+                    cardData={cardData2}
+                    type="new"
+                    onClick={() => setChoosin(1)}
+                    className=" "
+                  />
+                </div>
+              </div>
+
+              {/* Old Card UI */}
+              <div>or</div>
+              <div className="z-50 flex relative items-center gap-0">
+                <div className="  cursor-target">
+                  <CardReRender
+                    cardData={oldCard}
+                    type="old"
+                    onClick={() => setChoosin(2)}
+                    className=" "
+                  />
+                </div>
+                <div className="flex items-center whitespace-nowrap relative z-40 text-center justify-center w-12 h-56 bg-white  rounded-tr-lg rounded-br-lg shadow-[5px_3px_10px_rgb(0,0,0,0.2)]">
+                  <div className="rotate-90 font-poppins">
+                    Card from your collection
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </>
-      ) : (
-        <></>
-      )}
-    </div>
+        ) : null}
+
+        {keep === 3 ? (
+          <>
+            <DrawerContent className="bg-white ">
+              <div className="absolute left-1/2 bottom-[60%] transform -translate-x-1/2 -translate-y-1/2">
+                <CardReRender cardData={cardData2} type="new" className=" " />
+              </div>
+              <DrawerDescription>
+                <div className="   p-4 rounded-lg relative !bg-white lg:bg-transparen z-40 items-center  flex gap-2 flex-col ">
+                  {/* {progress || choosin === 2 ? (
+                    <div
+                      onClick={() => {
+                        window.location.reload();
+                      }}
+                      className="absolute top-3 right-3 lg:-top-10 lg:-right-10   cursor-target"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        className="size-6"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M6 18 18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </div>
+                  ) : (
+                    <></>
+                  )} */}
+
+                  <h1 className="font-concent lg:flex text-3xl lg:text-6xl h-1/4 underline whitespace-nowrap ">
+                    {choosin === 1 ? <>XP Gained</> : <>No XP Gained</>}
+                  </h1>
+                  <div className="text-center">
+                    {choosin === 2 ? (
+                      <div className="h-[15%] ">
+                        You've choosen to keep card from your collection
+                      </div>
+                    ) : (
+                      <></>
+                    )}
+                  </div>
+                  <div className="flex flex-col justify-center h-2/4  px-4 gap-2 w-[400px]">
+                    <div className="flex flex-col gap-2">
+                      <div className="text-xl font-semibold grid grid-cols-1">
+                        <p>
+                          <span className="font-bold">Album:</span>{" "}
+                          {tempTrack?.album.name}
+                        </p>
+                        <p>
+                          <span className="font-bold">Track:</span>{" "}
+                          {tempTrack?.track.name}
+                        </p>
+                        <p>
+                          <span className="font-bold">Artist:</span>{" "}
+                          {tempTrack?.album.artist}
+                        </p>
+                        <p>
+                          <span className="font-bold">Popularity:</span>{" "}
+                          {tempTrack?.track.popularity}
+                        </p>
+                        {choosin === 1 ? (
+                          <>
+                            <p>
+                              <span className="font-bold">XP:</span> {exp}
+                            </p>
+                          </>
+                        ) : (
+                          <></>
+                        )}
+                      </div>
+
+                      {choosin === 1 ? (
+                        <>
+                          <div className="text-lg font-semibold">
+                            Level {userLevel}
+                          </div>
+                          <Progress
+                            value={progress}
+                            className="bg-white border [&>div]:bg-black transition-all duration-1000 ease-out"
+                          />
+                          <div className="text-sm text-gray-600">
+                            {Math.round(progress)}%
+                          </div>
+                        </>
+                      ) : (
+                        <></>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </DrawerDescription>
+
+              <DrawerFooter>
+                <DrawerClose>
+                  {progress || choosin === 2 ? (
+                    <div className="flex w-full justify-center">
+                      <div
+                        className="cursor-target border py-2 px-3 w-20 rounded bg-white hover:text-white hover:bg-black "
+                        onClick={() => {
+                          window.location.reload();
+                        }}
+                      >
+                        Home
+                      </div>
+                    </div>
+                  ) : (
+                    <></>
+                  )}
+                </DrawerClose>
+              </DrawerFooter>
+            </DrawerContent>
+          </>
+        ) : (
+          <></>
+        )}
+      </div>
+    </Drawer>
   );
 };
 

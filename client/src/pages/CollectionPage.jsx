@@ -131,7 +131,7 @@ export default function CollectionPage({ page }) {
           {selectedCard && (
             <>
               <div
-                className={`absolute left-1/2 bottom-[60%] transform -translate-x-1/2 -translate-y-1/2 transition ${
+                className={`absolute left-1/2 bottom-[20%] transform -translate-x-1/2 -translate-y-1/2 transition scale-90 ${
                   open ? "" : "hidden"
                 }`}
               >
@@ -160,11 +160,11 @@ export default function CollectionPage({ page }) {
 
               <DrawerDescription>
                 <div className="p-4 rounded-xl relative bg-white lg:bg-transparent z-40 items-center flex gap-2 flex-col">
-                  <h1 className="font-concent text-3xl lg:text-6xl  whitespace-nowrap">
+                  <h1 className="font-concent text-3xl lg:text-4xl  whitespace-nowrap">
                     Card Details
                   </h1>
 
-                  <div className="flex flex-col justify-start  gap-2 text-xl  mt-4 font-libertinus">
+                  <div className="flex flex-col justify-start  text-  mt-4 font-libertinus">
                     <p>
                       <span className="font-bold">Album:</span>{" "}
                       {selectedCard?.album?.name}

@@ -101,7 +101,7 @@ const PacksPage = () => {
         {selectedPack && (
           <>
             <div
-              className={`absolute left-1/2 bottom-[60%] transform -translate-x-1/2 -translate-y-1/2 transition ${
+              className={`absolute left-1/2 bottom-[17%] transform -translate-x-1/2 -translate-y-1/2 transition ${
                 open ? "" : "hidden"
               }`}
             >
@@ -110,11 +110,11 @@ const PacksPage = () => {
 
             <DrawerDescription>
               <div className="p-6 rounded-lg relative bg-white lg:bg-transparent z-40 items-center flex flex-col gap-4">
-                <h1 className="font-concent text-3xl lg:text-6xl underline whitespace-nowrap">
+                <h1 className="font-concent text-3xl lg:text-4xl  whitespace-nowrap">
                   Pack Details
                 </h1>
 
-                <div className="flex flex-col gap-2 text-xl font-libertinus mt-4 text-center">
+                <div className="flex flex-col gap-2 text- font-libertinus mt-4 text-center">
                   <p>
                     <span className="font-bold">Album:</span>{" "}
                     {selectedPack.album}

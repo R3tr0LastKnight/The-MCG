@@ -181,3 +181,24 @@ export async function fetchAllPacks(page = 1, limit = 9) {
   if (!res.ok) throw new Error(data.error || "Failed to fetch packs");
   return data;
 }
+
+export async function fetchUserCount(options = {}) {
+  const url = `${process.env.REACT_APP_BACKEND_URL}/api/users/count`;
+
+  const res = await fetch(url, options);
+  const data = await res.json();
+
+  if (!res.ok) throw new Error(data.error || "Failed to fetch user count");
+
+  return data.count;
+}
+
+export async function fetchUserSummary(uid, options = {}) {
+  const res = await fetch(
+    `${process.env.REACT_APP_BACKEND_URL}/api/users/${uid}/summary`,
+    options
+  );
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to fetch user summary");
+  return data;
+}

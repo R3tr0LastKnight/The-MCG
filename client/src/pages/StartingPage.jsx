@@ -475,7 +475,39 @@ const PacksPage = () => {
                 backgroundColor: packData.bgColor,
                 color: packData.textColor,
               }}
-              className="px-4 py-1 text-lg rounded-lg   absolute bottom-0  cursor-target"
+              className=" px-3 py-3 text-lg rounded-full shadow-[0px_2px_10px_rgb(0,0,0,0.2)]  absolute -bottom-1 left-[37%] cursor-target"
+              onClick={() => {
+                setPack("");
+                setPackData({
+                  bgColor: "",
+                  textColor: "",
+                  index: 0,
+                });
+              }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="size-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"
+                />
+              </svg>
+            </div>
+          )}
+          {pack && !packRevealed && showButton && (
+            <div
+              style={{
+                backgroundColor: packData.bgColor,
+                color: packData.textColor,
+              }}
+              className="px-4 py-1 text-lg rounded-lg shadow-[0px_2px_10px_rgb(0,0,0,0.2)]  absolute bottom-0  cursor-target"
               onClick={handleOpenPackClick}
             >
               Open Pack
@@ -486,7 +518,7 @@ const PacksPage = () => {
           <>
             {!user ? (
               <>
-                <div className="absolute left-1/2 transform -translate-x-1/2 w-full text-center">
+                <div className="absolute left-1/2 transform -translate-x-1/2 w-full text-center ">
                   Login to save your cards
                 </div>
               </>
@@ -574,17 +606,17 @@ const PacksPage = () => {
         {keep === 3 ? (
           <>
             <DrawerContent className="bg-white ">
-              <div className="absolute left-1/2 bottom-[60%] transform -translate-x-1/2 -translate-y-1/2">
+              <div className="absolute left-1/2 bottom-[25%] transform -translate-x-1/2 -translate-y-1/2 scale-90 z-50">
                 <CardReRender cardData={cardData2} type="new" className=" " />
               </div>
               <DrawerDescription>
                 <div className="   p-4 rounded-lg relative !bg-white lg:bg-transparen z-40 items-center  flex gap-2 flex-col ">
-                  {/* {progress || choosin === 2 ? (
+                  {progress || choosin === 2 ? (
                     <div
                       onClick={() => {
                         window.location.reload();
                       }}
-                      className="absolute top-3 right-3 lg:-top-10 lg:-right-10   cursor-target"
+                      className="absolute top-3 right-3 lg:top-4 lg:right-[35%]  z-40 cursor-target"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -603,9 +635,8 @@ const PacksPage = () => {
                     </div>
                   ) : (
                     <></>
-                  )} */}
-
-                  <h1 className="font-concent lg:flex text-3xl lg:text-6xl h-1/4 underline whitespace-nowrap ">
+                  )}
+                  <h1 className="font-concent lg:flex text-3xl lg:text-5xl h-1/4 underline whitespace-nowrap ">
                     {choosin === 1 ? <>XP Gained</> : <>No XP Gained</>}
                   </h1>
                   <div className="text-center">
@@ -619,7 +650,7 @@ const PacksPage = () => {
                   </div>
                   <div className="flex flex-col justify-center h-2/4  px-4 gap-2 w-[400px]">
                     <div className="flex flex-col gap-2">
-                      <div className="text-xl font-semibold grid grid-cols-1">
+                      <div className=" font- text-sm grid grid-cols-1">
                         <p>
                           <span className="font-bold">Album:</span>{" "}
                           {tempTrack?.album.name}
@@ -669,7 +700,7 @@ const PacksPage = () => {
               </DrawerDescription>
 
               <DrawerFooter>
-                <DrawerClose>
+                {/* <DrawerClose>
                   {progress || choosin === 2 ? (
                     <div className="flex w-full justify-center">
                       <div
@@ -684,7 +715,7 @@ const PacksPage = () => {
                   ) : (
                     <></>
                   )}
-                </DrawerClose>
+                </DrawerClose> */}
               </DrawerFooter>
             </DrawerContent>
           </>

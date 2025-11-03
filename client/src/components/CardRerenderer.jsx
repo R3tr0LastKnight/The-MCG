@@ -125,7 +125,7 @@ const CardReRender = ({ cardData, type, ...props }) => {
         className={`relative h-[390px] w-[290px] rounded-lg shadow-[0_3px_10px_rgb(0,0,0,0.2)] overflow-hidden ${borderClass}`}
       >
         {/* animated border layers */}
-        <div className="absolute inset-0 -z-10 pointer-events-none">
+        <div className="absolute inset-0 flex justify-center items-center h-[450px] w-[350px] -z-10 pointer-events-none ">
           <Suspense fallback={null}>{background}</Suspense>
         </div>
 

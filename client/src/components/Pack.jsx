@@ -198,7 +198,7 @@ const Pack = ({
       {...handlers}
       className="relative w-full h-full flex justify-center items-center overflow-hidden"
     >
-      {!pack ? (
+      {!pack & (albums.length !== 0) ? (
         <div
           onClick={handlePrev}
           className="cursor-target absolute left-4 text-4xl z-40 select-none bg-black/50 text-white p-2 rounded-full hover:bg-black"
@@ -233,7 +233,7 @@ const Pack = ({
           </AnimatePresence>
         )}
       </div>
-      {!pack ? (
+      {!pack & (albums.length !== 0) ? (
         <div
           onClick={handleNext}
           className="cursor-target absolute right-4 text-4xl z-40 select-none bg-black/50 text-white p-2 rounded-full hover:bg-black"

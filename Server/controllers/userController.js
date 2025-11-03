@@ -1,6 +1,7 @@
 const User = require("../models/userModel");
 const { getValidSpotifyAccessToken } = require("../utils/spotifyAuth");
 const { fetchTrackFromSpotify } = require("../utils/spotifyService");
+const { getTrackAndAlbumDetails } = require("./spotifyController");
 
 // Google Login Controller
 exports.googleLogin = async (req, res) => {
@@ -238,5 +239,107 @@ exports.saveOrReplaceCard = async (req, res) => {
   } catch (err) {
     console.error("Error saving/replacing card:", err);
     res.status(500).json({ error: "Failed to save or replace card" });
+  }
+};
+
+exports.getUserCount = async (req, res) => {
+  try {
+    const count = await User.countDocuments();
+    res.json({ count });
+  } catch (err) {
+    console.error("Error fetching user count:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+async function fetchTrackAndAlbumDetails(albumId, trackId) {
+  try {
+    const token = await getValidSpotifyAccessToken();
+
+    const [albumRes, trackRes] = await Promise.all([
+      fetch(`https://api.spotify.com/v1/albums/${albumId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+      fetch(`https://api.spotify.com/v1/tracks/${trackId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+    ]);
+
+    const [albumData, trackData] = await Promise.all([
+      albumRes.json(),
+      trackRes.json(),
+    ]);
+
+    return {
+      album: {
+        id: albumData.id,
+        name: albumData.name,
+        artist: albumData.artists?.map((a) => a.name).join(", "),
+        image: albumData.images?.[0]?.url,
+        spotifyUrl: albumData.external_urls?.spotify,
+      },
+      track: {
+        id: trackData.id,
+        name: trackData.name,
+        preview_url: trackData.preview_url,
+        external_url: trackData.external_urls?.spotify,
+        duration_ms: trackData.duration_ms,
+        popularity: trackData.popularity,
+      },
+    };
+  } catch (err) {
+    console.error("Error fetching Spotify details:", err);
+    return null;
+  }
+}
+
+// 🧩 Main Controller — formatted like your example
+exports.getUserSummary = async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const user = await User.findOne({ uid });
+
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const sortedCards = [...(user.cards || [])].sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    );
+    const latestCard = sortedCards[0] || null;
+    const cardCount = user.cards?.length || 0;
+
+    let spotifyDetails = null;
+    if (latestCard?.albumId && latestCard?.trackId) {
+      spotifyDetails = await fetchTrackAndAlbumDetails(
+        latestCard.albumId,
+        latestCard.trackId
+      );
+    }
+
+    res.json({
+      uid: user.uid,
+      name: user.name,
+      email: user.email,
+      photo: user.photo,
+      exp: user.exp,
+      level: user.level,
+      cardCount,
+      latestCard: latestCard
+        ? {
+            ...latestCard._doc,
+            border: latestCard.border ?? 1,
+            bgSubId: latestCard.bgSubId ?? 2,
+            effectId: latestCard.effectId ?? 1,
+            spotify: spotifyDetails,
+          }
+        : {
+            border: 1,
+            bgSubId: 2,
+            effectId: 1,
+            spotify: null,
+          },
+    });
+  } catch (err) {
+    console.error("Error fetching user summary:", err);
+    res.status(500).json({ error: "Server error" });
   }
 };

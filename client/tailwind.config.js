@@ -9,6 +9,7 @@ module.exports = {
       concent: ["Manufacturing Consent", "sans-serif"],
       bitcount: ['"Bitcount Prop Single"', "system-ui"],
       libertinus: ["Libertinus Serif", "system-ui"],
+      product: ["Inter", "sans-serif"],
     },
     extend: {
       animation: {

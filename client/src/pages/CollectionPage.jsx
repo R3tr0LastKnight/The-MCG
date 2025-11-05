@@ -1,29 +1,29 @@
-import React, { useEffect, useState } from "react";
+import React, { lazy, useEffect, useState } from "react";
 import { fetchUserAlbums } from "../api/spotify";
 import { auth } from "../firebase";
 import { useUser } from "../utils/userContext";
-import CardReRender from "../components/CardRerenderer";
 import {
   Drawer,
   DrawerClose,
   DrawerContent,
   DrawerDescription,
   DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
 } from "../components/ui/drawer.jsx";
+import Counter from "../components/ui/Counter";
+import LoadingCards from "../components/LoadingCards";
+import CardReRender from "../components/CardRerenderer";
 
 export default function CollectionPage({ page }) {
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useUser();
+  const { user, cardCount } = useUser();
   const [pagination, setPagination] = useState({
     totalPages: 1,
     currentPage: 1,
   });
   const [open, setOpen] = useState(false);
   const [selectedCard, setSelectedCard] = useState(null);
+  const [startCount, setStartCount] = useState(false);
 
   const fetchCards = async (pageNum = 1) => {
     const currentUser = auth.currentUser;
@@ -31,6 +31,7 @@ export default function CollectionPage({ page }) {
 
     try {
       setLoading(true);
+      setStartCount(true);
       const data = await fetchUserAlbums(currentUser.uid, pageNum, 9);
       setCards(Array.isArray(data.cards) ? data.cards : []);
       setPagination(data.pagination || { totalPages: 1, currentPage: 1 });
@@ -63,12 +64,28 @@ export default function CollectionPage({ page }) {
     <>
       <Drawer open={open} onOpenChange={setOpen}>
         <div className="flex flex-col h-full w-full lg:px-16 justify-center items-center bg-transparent relative z-20">
-          <h1 className="text-6xl font-concent mb-4">Collection</h1>
+          <h1 className="text-6xl font-concent mt-16 lg:mt-0 mb-4 cursor-target">
+            Collection
+          </h1>
+          <div className="cursor-target rounded-lg overflow-hidden flex flex-col bg-white items-center justify-center mb-4 shadow-[0_3px_10px_rgb(0,0,0,0.2)] px-2 py-1">
+            <div className="font-semibold">Card Count</div>
+            <Counter
+              value={startCount ? cardCount : 0} // ✅ animate from 0 once ready
+              places={[1000, 100, 10, 1]}
+              fontSize={20}
+              padding={5}
+              gap={10}
+              textColor="black"
+              fontWeight={600}
+            />{" "}
+          </div>
 
           <div className="flex-1 overflow-auto">
             {user ? (
               loading ? (
-                <div>Loading...</div>
+                <div>
+                  <LoadingCards />
+                </div>
               ) : (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">

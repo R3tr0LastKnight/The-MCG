@@ -1,11 +1,9 @@
 import React, { useEffect, useRef, useState, useMemo, Suspense } from "react";
 import { FastAverageColor } from "fast-average-color";
-import { fetchRandomTrack, saveCard } from "../api/spotify";
-import { auth } from "../firebase";
+import { fetchRandomTrack } from "../api/spotify";
 
 const LiquidChrome = React.lazy(() => import("./ui/LiquidChrome"));
 const Iridescence = React.lazy(() => import("./ui/Iridescence"));
-const FaultyTerminal = React.lazy(() => import("./ui/FaultyTerminal"));
 const Dither = React.lazy(() => import("./ui/Dither"));
 const Silk = React.lazy(() => import("./ui/Silk"));
 
@@ -160,7 +158,7 @@ const Card = ({
       };
       setCardData(data);
       setCardData2({ track, data });
-      setExp(borderXp + exp + bxp + track?.track.popularity / 2);
+      setExp(Math.round(borderXp + exp + bxp + track?.track.popularity / 3));
       setShowChoose(true);
     }
   }, [track, border, borderClass, effectClass, bgSubId, effectId]);
@@ -290,12 +288,12 @@ const Card = ({
                 crossOrigin="anonymous"
               />
             </div>
-            <div className="flex flex-col w-full px-10 py-2 font-libertinus">
-              <div className="font-concent text-2xl line-clamp-2">
+            <div className="flex flex-col w-full px-10 py-2 ">
+              <div className="font-concent font- text-2xl line-clamp-2">
                 {track?.track.name}
               </div>
-              <div className="font-semibold">{track?.album.name}</div>
-              <div className="font-semibold">{track?.album.artist}</div>
+              <div className="font-medium">{track?.album.name}</div>
+              <div className="font-medium">{track?.album.artist}</div>
             </div>
           </>
         )}
@@ -314,7 +312,7 @@ const Card = ({
     >
       <div
         className={`relative h-[390px] w-[290px] rounded-lg overflow-hidden shadow-[0_3px_10px_rgb(0,0,0,0.2)] ${
-          borderClass || ""
+          border === 1 ? borderClass || "" : ""
         }`}
       >
         <div className="absolute inset-0 -z-10 pointer-events-none">

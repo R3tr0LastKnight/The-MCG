@@ -10,8 +10,8 @@ const Drawer = ({ page, setPage }) => {
   const buttonRef = useRef(null);
   const { user } = useUser();
   const menuItems = user
-    ? ["Home", "Collection", "Packs", "Account", "Logout"]
-    : ["Home", "Collection", "Packs", "Account"];
+    ? ["Home", "Collection", "Packs", "Account", "Leaderboard", "Logout"]
+    : ["Home", "Collection", "Packs", "Leaderboard", "Account"];
   const drawerWidth = 256; // 16rem
   const topOffset = 160; // tailwind's top-40 = 10rem = 160px
 
@@ -86,6 +86,8 @@ const Drawer = ({ page, setPage }) => {
                   setPage("account");
                 } else if (item === "Logout") {
                   setPage("logout");
+                } else if (item === "Leaderboard") {
+                  setPage("leaderboard");
                 }
               }}
             >

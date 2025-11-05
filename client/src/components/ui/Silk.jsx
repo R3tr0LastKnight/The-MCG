@@ -2,6 +2,8 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { forwardRef, useRef, useMemo, useLayoutEffect } from "react";
 import { Color } from "three";
+import useResizeCanvas from "./ResizeSync";
+import ResizeSync from "./ResizeSync";
 
 const hexToNormalizedRGB = (hex) => {
   hex = hex.replace("#", "");
@@ -117,7 +119,8 @@ const Silk = ({
   );
 
   return (
-    <Canvas dpr={[1, 2]} frameloop="always">
+    <Canvas className="absolute inset-0 w-full h-full" dpr={[1, 2]}>
+      <ResizeSync />
       <SilkPlane ref={meshRef} uniforms={uniforms} />
     </Canvas>
   );

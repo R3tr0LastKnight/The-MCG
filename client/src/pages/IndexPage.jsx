@@ -1,18 +1,16 @@
-import React, { useState } from "react";
+import React, { lazy, useState } from "react";
 import { cn } from "../lib/utils.tsx";
 import { DotPattern } from "../components/ui/dot-pattern.tsx";
+import { useEffect } from "react";
+import { fetchUserCount } from "../api/spotify.js";
 import Drawer from "../components/Drawer.jsx";
-import currents from "../assets/currents.png";
-import Pack from "../components/Pack.jsx";
+import Counter from "../components/ui/Counter.jsx";
+import TargetCursor from "../components/ui/TargetCursor.jsx";
 import CollectionPage from "./CollectionPage.jsx";
 import PacksPage from "./PacksPage.jsx";
 import AccountPage from "./AccountPage.jsx";
 import StartingPage from "./StartingPage.jsx";
-import MusicPlayer from "../components/MusicPlayer.jsx";
-import TargetCursor from "../components/ui/TargetCursor.jsx";
-import { useEffect } from "react";
-import { fetchUserCount } from "../api/spotify.js";
-// import PackOpening from "./PackOpening.jsx";
+import LeaderboardPage from "./LeaderboardPage.jsx";
 
 const IndexPage = () => {
   const [page, setPage] = useState("index");
@@ -34,8 +32,8 @@ const IndexPage = () => {
   return (
     <>
       <TargetCursor spinDuration={2} hideDefaultCursor={true} />
-      <div className="flex  py-4 lg:max-h-[86vh] lg:min-h-[86vh] max-h-[74vh] min-h-[74vh] relative">
-        <div className="absolute items-center justify-center ms z-40 hover:bg-black font-libertinus hover:text-white transition gap-1 flex top-3 right-3 lg:top-2 lg:right-10   cursor-target border shadow-[0_3px_10px_rgb(0,0,0,0.2)] rounded-lg bg-white px-2 py-2">
+      <div className="flex  py-4 lg:max-h-[86vh] lg:min-h-[86vh] max-h-[79vh] min-h-[79vh] relative">
+        <div className="absolute items-center justify-center ms z-40 transition gap-1 flex top-3 right-3 lg:top-2 lg:right-10   cursor-target border shadow-[0_3px_10px_rgb(0,0,0,0.2)] rounded-lg bg-white px-2 py-2">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -49,11 +47,22 @@ const IndexPage = () => {
               clipRule="evenodd"
             />
           </svg>
-          <div className="font-semibold">Population : </div> {userCount}
+          <div className="font-semibold">Population : </div>
+          <div className="rounded-lg overflow-hidden flex items-center justify-center">
+            <Counter
+              value={userCount}
+              places={[1000, 100, 10, 1]}
+              fontSize={20}
+              padding={5}
+              gap={10}
+              textColor="black"
+              fontWeight={600}
+            />
+          </div>
         </div>
-        <div className="absolute z-40 hover:bg-black hover:text-white transition hidden lg:flex bottom-3 right-3 lg:bottom-2 lg:right-10   cursor-target border shadow-[0_3px_10px_rgb(0,0,0,0.2)] rounded-lg bg-white px-2 py-2">
+        {/* <div className="absolute z-40 hover:bg-black hover:text-white transition hidden lg:flex bottom-3 right-3 lg:bottom-2 lg:right-10   cursor-target border shadow-[0_3px_10px_rgb(0,0,0,0.2)] rounded-lg bg-white px-2 py-2">
           Unstick Cursor
-        </div>
+        </div> */}
         <DotPattern
           glow={false}
           className={cn(
@@ -77,6 +86,10 @@ const IndexPage = () => {
         ) : page === "account" ? (
           <>
             <AccountPage />
+          </>
+        ) : page === "leaderboard" ? (
+          <>
+            <LeaderboardPage />
           </>
         ) : page === "logout" ? (
           <></>

@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { lazy, useEffect, useState } from "react";
 import { useUser } from "../utils/userContext";
 import { auth } from "../firebase";
 import { fetchUserSummary } from "../api/spotify";
-import CardReRender from "../components/CardRerenderer";
 import { Progress } from "../components/ui/Progress.tsx";
+import CardReRender from "../components/CardRerenderer";
+import AccountSkeleton from "../components/AccountSkeleton";
 
 const AccountPage = () => {
-  const { user, logOut } = useUser();
+  const { user, logOut, setCardCount } = useUser();
   const [userSummary, setUserSummary] = useState(null);
   const [cardData, setCardData] = useState(null);
 
@@ -17,7 +18,7 @@ const AccountPage = () => {
         if (!uid) return;
 
         const data = await fetchUserSummary(uid);
-        console.log("User Data:", data);
+        // console.log("User Data:", data);
 
         const latestCard = data?.latestCard;
         const spotify = latestCard?.spotify; // ✅ define first
@@ -43,6 +44,7 @@ const AccountPage = () => {
 
         setCardData(formatted);
         setUserSummary(data);
+        setCardCount(data.cardCount);
       } catch (err) {
         console.error("Error loading user summary:", err);
       }
@@ -51,7 +53,7 @@ const AccountPage = () => {
     loadSummary();
   }, []);
 
-  if (!userSummary) return <p>Loading...</p>;
+  if (!userSummary) return <AccountSkeleton />;
 
   const { name, email, photo, level } = userSummary;
 
@@ -63,17 +65,17 @@ const AccountPage = () => {
             <div className="shadow-[0_3px_10px_rgb(0,0,0,0.2)] rounded-lg bg-white text-black py-2 px-2 flex gap-2 text-xl text-center justify-center lg:mt-4">
               {userSummary.cardCount} cards in collection
             </div>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mt-6">
-              <div className="shadow-[0_3px_10px_rgb(0,0,0,0.2)] rounded-lg bg-green-200 text-black py-2 px-2 flex gap-2 text-lg text-center justify-center w-full">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mt-6 text-xs">
+              <div className="shadow-[0_3px_10px_rgb(0,0,0,0.2)] rounded-lg bg-green-200 text-black py-2 px-2 flex gap-2  text-center justify-center w-full">
                 Common : 44
               </div>
-              <div className="shadow-[0_3px_10px_rgb(0,0,0,0.2)] rounded-lg bg-blue-200 text-black py-2 px-2 flex gap-2 text-lg text-center justify-center w-full">
+              <div className="shadow-[0_3px_10px_rgb(0,0,0,0.2)] rounded-lg bg-blue-200 text-black py-2 px-2 flex gap-2  text-center justify-center w-full">
                 Rare : 12
               </div>
-              <div className="shadow-[0_3px_10px_rgb(0,0,0,0.2)] rounded-lg bg-purple-200 text-black py-2 px-2 flex gap-2 text-lg text-center justify-center w-full">
+              <div className="shadow-[0_3px_10px_rgb(0,0,0,0.2)] rounded-lg bg-purple-200 text-black py-2 px-2 flex gap-2  text-center justify-center w-full">
                 Epic : 5
               </div>
-              <div className="shadow-[0_3px_10px_rgb(0,0,0,0.2)] rounded-lg bg-yellow-200 text-black py-2 px-2 flex gap-2 text-lg text-center justify-center w-full">
+              <div className="shadow-[0_3px_10px_rgb(0,0,0,0.2)] rounded-lg bg-yellow-200 text-black py-2 px-2 flex gap-2  text-center justify-center w-full">
                 Legendary : 2
               </div>
             </div>

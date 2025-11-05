@@ -1,30 +1,24 @@
-import React, { useEffect, useRef, useState } from "react";
-import Pack from "../components/Pack";
+import React, { lazy, useEffect, useRef, useState } from "react";
 import * as htmlToImage from "html-to-image";
 import { motion } from "framer-motion";
-import Card from "../components/Card";
 import { Progress } from "../components/ui/Progress.tsx";
 import {
   addExp,
-  getUserCardByTrack,
   getUserCardWithTrack,
-  saveCard,
   saveOrReplaceCard,
 } from "../api/spotify";
 import { auth } from "../firebase";
 import { useUser } from "../utils/userContext";
-import CardReRender from "../components/CardRerenderer";
-import SplashCursor from "../components/ui/SplashCursor";
 import {
   Drawer,
-  DrawerClose,
   DrawerContent,
   DrawerDescription,
   DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
 } from "../components/ui/drawer.jsx";
+import SplashCursor from "../components/ui/SplashCursor.jsx";
+import CardReRender from "../components/CardRerenderer.jsx";
+import Pack from "../components/Pack.jsx";
+import Card from "../components/Card.jsx";
 
 const PacksPage = () => {
   const [pack, setPack] = useState("");
@@ -82,11 +76,11 @@ const PacksPage = () => {
     await handleCapture(); // take screenshot
     setShowButton(false); // hide button
     setPackRevealed(true); // now show screenshot, but not open yet
-    console.log("color:", packData);
+    // console.log("color:", packData);
   };
 
   const holdTimerRef = useRef(null);
-  const HOLD_DURATION = 2000; // ms → how long to hold before burn
+  const HOLD_DURATION = 1000; // ms → how long to hold before burn
 
   const startHold = (e) => {
     // prevent scrolling on touch devices
@@ -132,9 +126,9 @@ const PacksPage = () => {
     try {
       // ✅ 1. Ensure fonts are fully loaded before capture
       if (document.fonts && document.fonts.ready) {
-        console.log("⏳ Waiting for fonts to finish loading...");
+        // console.log("⏳ Waiting for fonts to finish loading...");
         await document.fonts.ready;
-        console.log("✅ Fonts loaded");
+        // console.log("✅ Fonts loaded");
       }
 
       // ✅ 2. Clone all Google Font <link> elements and inline their CSS text
@@ -181,7 +175,7 @@ const PacksPage = () => {
       delete document.styleSheets;
 
       setImgSrc(dataUrl);
-      console.log("✅ Capture succeeded, fonts included");
+      // console.log("✅ Capture succeeded, fonts included");
     } catch (err) {
       console.error("Capture failed:", err);
     }
@@ -192,10 +186,10 @@ const PacksPage = () => {
       const pushCard = async () => {
         try {
           if (!oldCard) {
-            console.log("oldcard");
+            // console.log("oldcard");
 
             // no duplicate → just save new card
-            console.log("card Data 2 :", cardData2);
+            // console.log("card Data 2 :", cardData2);
 
             await saveOrReplaceCard(auth.currentUser?.uid, {
               newCard: cardData2?.data,
@@ -210,7 +204,7 @@ const PacksPage = () => {
             setKeep(3);
           } else if (choosin === 2) {
             // keep old card → no backend update
-            console.log("Kept old card, no backend update");
+            // console.log("Kept old card, no backend update");
             setKeep(3);
           }
         } catch (err) {
@@ -233,12 +227,12 @@ const PacksPage = () => {
         try {
           // ✅ Skip XP if old card was chosen
           if (choosin === 2) {
-            console.log("Kept old card → no XP awarded");
+            // console.log("Kept old card → no XP awarded");
             return;
           }
 
           const gainedExp = exp;
-          console.log("sent xp: ", exp);
+          // console.log("sent xp: ", exp);
 
           const result = await addExp(auth.currentUser?.uid, gainedExp);
 
@@ -257,7 +251,7 @@ const PacksPage = () => {
             setProgress(newPercent);
           }, 200);
 
-          console.log("temp:", tempTrack);
+          // console.log("temp:", tempTrack);
 
           // Save latest exp for next time
           setOldExp(result.exp);
@@ -270,7 +264,7 @@ const PacksPage = () => {
     }
   }, [keep]);
 
-  console.log("keep:", keep);
+  // console.log("keep:", keep);
 
   useEffect(() => {
     const checkExistingCard = async () => {
@@ -282,7 +276,7 @@ const PacksPage = () => {
           );
 
           if (!data || !data.exists) {
-            console.log("No old card found → skipping chooser");
+            // console.log("No old card found → skipping chooser");
             // 🚀 skip straight to XP step
             setKeep(3);
             setChoosin(1);
@@ -294,7 +288,7 @@ const PacksPage = () => {
           setOldCard(normalized);
         } catch (err) {
           if (err.message?.includes("404") || err.response?.status === 404) {
-            console.log("No old card found → skipping chooser");
+            // console.log("No old card found → skipping chooser");
             setKeep(3); // 🚀 skip chooser
           } else {
             console.error("Unexpected error fetching old card:", err);
@@ -365,21 +359,22 @@ const PacksPage = () => {
       <div className=" ">
         {!showButton && !burned && (
           <SplashCursor
-            SIM_RESOLUTION={32} // ↓ lower = faster (default is often 128+)
-            DYE_RESOLUTION={128} // good balance between smooth color and perf
-            CAPTURE_RESOLUTION={100} // keep modest
-            DENSITY_DISSIPATION={1} // colors fade gradually
-            VELOCITY_DISSIPATION={0.5} // smoother motion, less chaotic
-            PRESSURE={0.2} // stable fluid without jitter
-            PRESSURE_ITERATIONS={4} // reduce from heavy 20–30
-            CURL={15} // nice swirls without heavy calc
-            SPLAT_RADIUS={0.12} // smaller splats for less load
-            SPLAT_FORCE={2000} // reasonable force
-            SHADING={true} // keep shading for nice 3D feel
-            COLOR_UPDATE_SPEED={20} // not too frequent → better perf
+            SIM_RESOLUTION={16} // ↓ BIG boost. Halve computation again
+            DYE_RESOLUTION={64} // enough color detail
+            CAPTURE_RESOLUTION={64} // low but still crisp trails
+            DENSITY_DISSIPATION={1.1} // fade faster → fewer pixels to track
+            VELOCITY_DISSIPATION={0.6} // smoother, slower flow
+            PRESSURE={0.18}
+            PRESSURE_ITERATIONS={2} // 2 is good for mobile, 4+ is expensive
+            CURL={8} // keep swirls but lighten math
+            SPLAT_RADIUS={0.1}
+            SPLAT_FORCE={1500} // lower force = fewer particle explosions
+            SHADING={false} // 🚨 huge GPU saver on phones
+            COLOR_UPDATE_SPEED={12} // decrease updates
             BACK_COLOR={parseColor(packData.bgColor)}
-            TRANSPARENT={true} // lets background show throughbg
+            TRANSPARENT={true}
             packColor={packData}
+            // HIGH_QUALITY={false} // ⬅️ add this flag in your fluid shader if supported
           />
         )}
         <div className="flex flex-col items-center justify-center absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 ">
@@ -401,7 +396,7 @@ const PacksPage = () => {
           ) : (
             <>
               {!showButton && !burned ? (
-                <div className="absolute bottom-56 whitespace-nowrap    ">
+                <div className="absolute top-52  whitespace-nowrap    ">
                   Hover over card to open it
                 </div>
               ) : (
@@ -607,10 +602,14 @@ const PacksPage = () => {
           <>
             <DrawerContent className="bg-white ">
               <div className="absolute left-1/2 bottom-[25%] transform -translate-x-1/2 -translate-y-1/2 scale-90 z-50">
-                <CardReRender cardData={cardData2} type="new" className=" " />
+                <CardReRender
+                  cardData={choosin === 2 ? oldCard : cardData2}
+                  type={choosin === 2 ? "old" : "new"}
+                  className=" "
+                />
               </div>
               <DrawerDescription>
-                <div className="   p-4 rounded-lg relative !bg-white lg:bg-transparen z-40 items-center  flex gap-2 flex-col ">
+                <div className=" font-libertinus  p-4 rounded-lg relative !bg-white lg:bg-transparen z-40 items-center  flex gap-2 flex-col ">
                   {progress || choosin === 2 ? (
                     <div
                       onClick={() => {
@@ -650,7 +649,7 @@ const PacksPage = () => {
                   </div>
                   <div className="flex flex-col justify-center h-2/4  px-4 gap-2 w-[400px]">
                     <div className="flex flex-col gap-2">
-                      <div className=" font- text-sm grid grid-cols-1">
+                      <div className="  text-sm grid grid-cols-1">
                         <p>
                           <span className="font-bold">Album:</span>{" "}
                           {tempTrack?.album.name}

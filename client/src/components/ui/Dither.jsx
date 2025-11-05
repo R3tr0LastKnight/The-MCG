@@ -4,6 +4,8 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { EffectComposer, wrapEffect } from "@react-three/postprocessing";
 import { Effect } from "postprocessing";
 import * as THREE from "three";
+import useResizeCanvas from "./ResizeSync";
+import ResizeSync from "./ResizeSync";
 
 const waveVertexShader = `
 precision highp float;
@@ -278,11 +280,11 @@ export default function Dither({
 }) {
   return (
     <Canvas
-      className="w-full h-full relative"
+      className="absolute inset-0 w-full h-full"
       camera={{ position: [0, 0, 6] }}
-      dpr={window.devicePixelRatio}
-      gl={{ antialias: true, preserveDrawingBuffer: true }}
+      gl={{ preserveDrawingBuffer: true }}
     >
+      <ResizeSync />
       <DitheredWaves
         waveSpeed={waveSpeed}
         waveFrequency={waveFrequency}

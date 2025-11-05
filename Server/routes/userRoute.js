@@ -11,6 +11,7 @@ const {
   googleLogin,
   getUserCount,
   getUserSummary,
+  getLeaderboardWithRank,
 } = require("../controllers/userController");
 
 // POST /api/users/save-card
@@ -23,5 +24,6 @@ router.post("/add-card", addCard);
 router.post("/google-login", googleLogin);
 router.get("/count", getUserCount);
 router.get("/:uid/summary", getUserSummary);
+router.get("/:uid/leaderboard/cards", getLeaderboardWithRank);
 
 module.exports = router;

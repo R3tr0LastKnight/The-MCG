@@ -7,10 +7,7 @@ import {
   signInWithRedirect,
   getRedirectResult,
 } from "firebase/auth";
-import { Navigate } from "react-router";
-import { toast } from "react-toastify";
 import { useUser } from "../utils/userContext";
-import axios from "axios";
 
 const Nav = () => {
   const [login, setLogin] = useState(isLoggedIn());
@@ -66,7 +63,7 @@ const Nav = () => {
         localStorage.setItem("user", JSON.stringify(data.user));
         setUser(data.user);
         setLogin(true);
-        console.log("Logged in user:", data.user);
+        // console.log("Logged in user:", data.user);
       }
     } catch (err) {
       console.error("Google login error:", err);
@@ -101,7 +98,7 @@ const Nav = () => {
           localStorage.setItem("user", JSON.stringify(data.user));
           setUser(data.user);
           setLogin(true);
-          console.log("Redirect login success:", data.user);
+          // console.log("Redirect login success:", data.user);
         }
       }
     });
@@ -124,7 +121,7 @@ const Nav = () => {
                   <img
                     src={user.photo}
                     alt="User profile"
-                    className="h-full w-full object-cover"
+                    className="h-full w-full object-cover cursor-target"
                     referrerPolicy="no-referrer"
                   />
                 </div>

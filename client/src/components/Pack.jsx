@@ -1,8 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { lazy, useEffect, useRef, useState } from "react";
 import { fetchAllEnrichedAlbums } from "../api/spotify";
 import { FastAverageColor } from "fast-average-color";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSwipeable } from "react-swipeable";
+import LoadingCarousel from "./LoadingCarousel";
+
 // import html2canvas from "html2canvas";
 
 const Pack = ({
@@ -224,7 +226,9 @@ const Pack = ({
 
       <div className="relative flex justify-center items-center w-[900px] h-[500px]">
         {albums.length === 0 ? (
-          <div>Loading albums...</div>
+          <>
+            <LoadingCarousel />
+          </>
         ) : (
           <AnimatePresence mode="popLayout" custom={direction}>
             {renderCard(getIndex(-1), "left")}

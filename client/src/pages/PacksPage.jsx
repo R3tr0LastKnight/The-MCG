@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy } from "react";
 import { useUser } from "../utils/userContext";
 import { fetchAllPacks } from "../api/spotify";
 import {
@@ -9,6 +9,7 @@ import {
   DrawerFooter,
 } from "../components/ui/drawer.jsx";
 import PackReRenderer from "../components/PackReRenderer";
+import LoadingCards from "../components/LoadingCards";
 
 const PacksPage = () => {
   const { user } = useUser();
@@ -38,7 +39,7 @@ const PacksPage = () => {
   const handlePageChange = (pageNum) => loadPacks(pageNum);
 
   useEffect(() => {
-    if (user) loadPacks(1);
+    if (user || !user) loadPacks(1);
   }, [user]);
 
   const handlePackClick = (pack) => {
@@ -46,21 +47,18 @@ const PacksPage = () => {
     setOpen(true);
   };
 
-  if (!user)
-    return (
-      <div className="flex h-full items-center justify-center text-xl">
-        Login to view your packs
-      </div>
-    );
-
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <div className="flex flex-col h-full w-full lg:px-16 justify-center items-center relative z-20">
-        <h1 className="text-6xl font-concent mb-8">Packs</h1>
+        <h1 className="text-6xl font-concent mt-16 lg:mt-0 mb-8 cursor-target">
+          Packs
+        </h1>
 
         <div className="flex-1 w- overflow-auto justify-center">
           {loading ? (
-            <div className="text-lg text-gray-400 text-center">Loading...</div>
+            <div className="text-lg text-gray-400 text-center">
+              <LoadingCards />
+            </div>
           ) : (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">

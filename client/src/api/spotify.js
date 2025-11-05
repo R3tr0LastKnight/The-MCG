@@ -202,3 +202,13 @@ export async function fetchUserSummary(uid, options = {}) {
   if (!res.ok) throw new Error(data.error || "Failed to fetch user summary");
   return data;
 }
+
+export async function fetchLeaderboardWithRank(uid, options = {}) {
+  const res = await fetch(
+    `${process.env.REACT_APP_BACKEND_URL}/api/users/${uid}/leaderboard/cards`,
+    options
+  );
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to load leaderboard");
+  return data;
+}

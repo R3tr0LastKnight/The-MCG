@@ -293,7 +293,6 @@ async function fetchTrackAndAlbumDetails(albumId, trackId) {
   }
 }
 
-// 🧩 Main Controller — formatted like your example
 exports.getUserSummary = async (req, res) => {
   try {
     const { uid } = req.params;
@@ -340,6 +339,43 @@ exports.getUserSummary = async (req, res) => {
     });
   } catch (err) {
     console.error("Error fetching user summary:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+exports.getLeaderboardWithRank = async (req, res) => {
+  try {
+    const { uid } = req.params;
+
+    // ✅ Aggregate all users with card counts
+    const allUsers = await User.aggregate([
+      {
+        $project: {
+          uid: 1,
+          name: 1,
+          photo: 1,
+          cardCount: { $size: "$cards" },
+        },
+      },
+      { $sort: { cardCount: -1 } },
+    ]);
+
+    // ✅ Compute rank
+    const userIndex = allUsers.findIndex((u) => u.uid === uid);
+    const userRank = userIndex !== -1 ? userIndex + 1 : null;
+    const userData = userIndex !== -1 ? allUsers[userIndex] : null;
+
+    // ✅ Top 10 leaderboard
+    const top10 = allUsers.slice(0, 10);
+
+    res.json({
+      leaderboard: top10,
+      user: userData,
+      rank: userRank,
+      totalPlayers: allUsers.length,
+    });
+  } catch (err) {
+    console.error("Error fetching leaderboard & rank:", err);
     res.status(500).json({ error: "Server error" });
   }
 };

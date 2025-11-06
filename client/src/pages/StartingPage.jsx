@@ -522,7 +522,7 @@ const PacksPage = () => {
             )}
 
             {keep < 1 && burned === true ? (
-              <div className="absolute left-1/2  transform -translate-x-1/2 bottom-0  lg:left-[70%] lg:top-32 lg:translate-x-0 flex gap-2 flex-col ">
+              <div className="absolute left-1/2  transform -translate-x-1/2 bottom-6  lg:left-[70%] lg:top-32 lg:translate-x-0 flex gap-2 flex-col ">
                 <h1 className="font-concent hidden lg:flex text-xl lg:text-6xl">
                   CHOOSE
                 </h1>
@@ -609,7 +609,7 @@ const PacksPage = () => {
                 />
               </div>
               <DrawerDescription>
-                <div className=" font-libertinus  p-4 rounded-lg relative !bg-white lg:bg-transparen z-40 items-center  flex gap-2 flex-col ">
+                <div className=" p-4 rounded-xl relative bg-white lg:bg-transparent z-40 items-center flex gap-2 flex-col">
                   {progress || choosin === 2 ? (
                     <div
                       onClick={() => {
@@ -647,7 +647,7 @@ const PacksPage = () => {
                       <></>
                     )}
                   </div>
-                  <div className="flex flex-col justify-center h-2/4  px-4 gap-2 w-[400px]">
+                  <div className="flex flex-col justify-center h-2/4  px-4 gap-2 lg:w-[400px]">
                     <div className="flex flex-col gap-2">
                       <div className="  text-sm grid grid-cols-1">
                         <p>

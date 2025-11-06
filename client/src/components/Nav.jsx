@@ -5,7 +5,7 @@ import { Progress } from "./ui/Progress.tsx";
 import {
   signInWithPopup,
   signInWithRedirect,
-  getRedirectResult,
+  onAuthStateChanged,
 } from "firebase/auth";
 import { useUser } from "../utils/userContext";
 
@@ -13,106 +13,81 @@ const Nav = () => {
   const [login, setLogin] = useState(isLoggedIn());
   const [user, setUser] = useState(null);
   const { logIn } = useUser();
+  const API_URL = process.env.REACT_APP_BACKEND_URL;
 
+  // Load any saved user from localStorage on mount
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
       setLogin(true);
+      logIn(parsedUser);
     } else {
       setUser(null);
       setLogin(false);
     }
-  }, []);
+  }, [logIn]);
 
+  // Handle Google login (Popup → fallback to Redirect)
   const handleGoogleLogin = async () => {
     try {
-      let result;
+      await signInWithPopup(auth, googleProvider);
+      // `onAuthStateChanged` will catch and handle login after popup success
+    } catch (popupError) {
+      console.warn("Popup failed, falling back to redirect:", popupError);
+      await signInWithRedirect(auth, googleProvider);
+    }
+  };
 
-      // 1. Try popup first (works on desktop)
-      try {
-        result = await signInWithPopup(auth, googleProvider);
-      } catch (popupError) {
-        console.warn("Popup failed, falling back to redirect:", popupError);
-        await signInWithRedirect(auth, googleProvider);
-        return; // redirect will reload the page, so stop here
-      }
-
-      // 2. Get user info (popup success case)
-      const user = result.user;
+  // 🔹 Firebase auth listener (handles both popup + redirect)
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!firebaseUser) return;
 
       const userData = {
-        name: user.displayName,
-        email: user.email,
-        photo: user.photoURL,
-        uid: user.uid,
+        name: firebaseUser.displayName,
+        email: firebaseUser.email,
+        photo: firebaseUser.photoURL,
+        uid: firebaseUser.uid,
       };
 
-      const res = await fetch(
-        `${process.env.REACT_APP_BACKEND_URL}/api/users/google-login`,
-        {
+      try {
+        const res = await fetch(`${API_URL}/api/users/google-login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(userData),
-        }
-      );
+        });
 
-      const data = await res.json();
-
-      if (data.success) {
-        localStorage.setItem("user", JSON.stringify(data.user));
-        setUser(data.user);
-        setLogin(true);
-        // console.log("Logged in user:", data.user);
-      }
-    } catch (err) {
-      console.error("Google login error:", err);
-    }
-    window.location.reload();
-  };
-
-  // 🔹 After page reload (in App.js or a top-level component):
-  useEffect(() => {
-    getRedirectResult(auth).then(async (result) => {
-      if (result) {
-        const user = result.user;
-        const userData = {
-          name: user.displayName,
-          email: user.email,
-          photo: user.photoURL,
-          uid: user.uid,
-        };
-
-        const res = await fetch(
-          "https://myspotifymcgtestretro.loca.lt/api/users/google-login",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(userData),
-          }
-        );
-
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
 
         if (data.success) {
           localStorage.setItem("user", JSON.stringify(data.user));
           setUser(data.user);
           setLogin(true);
-          // console.log("Redirect login success:", data.user);
+          logIn(data.user);
+        } else {
+          console.error("Backend login failed:", data);
         }
+      } catch (e) {
+        console.error("Login error:", e);
       }
     });
-  }, []);
+
+    return unsubscribe;
+  }, [API_URL, logIn]);
 
   return (
     <div className="flex items-center justify-between w-screen px-4 !lg:max-h-[10vh] py-4 shadow-[0_3px_10px_rgb(0,0,0,0.2)]">
       <div
         onClick={() => window.location.reload()}
-        className="text-5xl font- font-bitcount   w-1/2"
+        className="text-5xl font-bitcount w-1/2 cursor-target"
       >
-        <div className="cursor-target w-fit">The MCG</div>
+        <div className="w-fit">The MCG</div>
       </div>
-      <div className="flex flex-col lg:flex-row lg:mr-4 items-center gap-1 lg:gap-4 ">
+
+      <div className="flex flex-col lg:flex-row lg:mr-4 items-center gap-1 lg:gap-4">
         {login && user ? (
           <>
             <div className="flex">
@@ -144,9 +119,10 @@ const Nav = () => {
                 </div>
               )}
             </div>
+
             <div className="flex flex-col text-sm">
               <div className="text-center">{user.name}</div>
-              <div className="flex  gap-2 items-center">
+              <div className="flex gap-2 items-center">
                 <div>lvl {user.level}</div>
                 <div className="w-20">
                   <Progress
@@ -160,11 +136,10 @@ const Nav = () => {
         ) : (
           <div
             onClick={handleGoogleLogin}
-            className="border border-black rounded-xl   hover:bg-black hover:text-white group hover:shadow-[0_4px_10px_rgb(0,0,0,0.4)] cursor-target"
+            className="border border-black rounded-xl hover:bg-black hover:text-white group hover:shadow-[0_4px_10px_rgb(0,0,0,0.4)] cursor-target"
           >
-            <div className="flex justify-center items-center gap-2 py-1 px-2 ">
+            <div className="flex justify-center items-center gap-2 py-1 px-2">
               Google Login
-              {/* google icon svg unchanged */}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 x="0px"

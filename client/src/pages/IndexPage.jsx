@@ -32,8 +32,8 @@ const IndexPage = () => {
   return (
     <>
       <TargetCursor spinDuration={2} hideDefaultCursor={true} />
-      <div className="flex  py-4 lg:max-h-[86vh] lg:min-h-[86vh] max-h-[79vh] min-h-[79vh] relative">
-        <div className="absolute items-center justify-center ms z-40 transition gap-1 flex top-3 right-3 lg:top-2 lg:right-10   cursor-target border shadow-[0_3px_10px_rgb(0,0,0,0.2)] rounded-lg bg-white px-2 py-2">
+      <div className=" flex flex-col h-[88vh] w-full lg:px-16 justify-center items-center bg-transparent relative z-20">
+        <div className="absolute  items-center justify-center ms z-40 transition gap-1 flex top-3 right-3 lg:top-2 lg:right-10   cursor-target border shadow-[0_3px_10px_rgb(0,0,0,0.2)] rounded-lg bg-white px-2 py-2">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"

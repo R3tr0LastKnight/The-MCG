@@ -52,12 +52,14 @@ const LeaderboardPage = () => {
   }, []);
 
   return (
-    <div className="w-[80%] mx-auto p-6 mb-6">
+    <div className="lg:w-[80%] w-[100%] mx-auto p-6 mb-6">
       <h2 className="text-6xl mb-4 text-center font-concent">Leaderboard</h2>
 
       <div className="rounded-2xl border  shadow-[0_3px_10px_rgb(0,0,0,0.2)] mb-4 bg-white text-black backdrop-blur-md w-full overflow-hidden">
         <Table className="w-full text-base">
-          <TableCaption className="text-sm ">League of Champions</TableCaption>
+          <TableCaption className="text-sm text-center ">
+            League of Champions
+          </TableCaption>
 
           <TableHeader>
             <TableRow className="bg-white/10 border-b border-white/10">

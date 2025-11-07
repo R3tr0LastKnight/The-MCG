@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { auth, googleProvider } from "../firebase";
-import { isLoggedIn } from "../utils/auth";
 import { Progress } from "./ui/Progress.tsx";
 import {
   signInWithPopup,
@@ -10,79 +9,76 @@ import {
 import { useUser } from "../utils/userContext";
 
 const Nav = () => {
-  const [login, setLogin] = useState(isLoggedIn());
-  const [user, setUser] = useState(null);
-  const { logIn } = useUser();
+  const [user, setUser] = useState(() => {
+    const stored = localStorage.getItem("user");
+    return stored ? JSON.parse(stored) : null;
+  });
+  const [login, setLogin] = useState(!!user);
+  const { user: ctxUser, logIn } = useUser();
   const API_URL = process.env.REACT_APP_BACKEND_URL;
+  const hasSynced = useRef(false);
 
-  // Load any saved user from localStorage on mount
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      setUser(parsedUser);
-      setLogin(true);
-      logIn(parsedUser);
-    } else {
-      setUser(null);
-      setLogin(false);
-    }
-  }, [logIn]);
-
-  // Handle Google login (Popup → fallback to Redirect)
+  // ---------- Google login ----------
   const handleGoogleLogin = async () => {
     try {
       await signInWithPopup(auth, googleProvider);
-      // `onAuthStateChanged` will catch and handle login after popup success
     } catch (popupError) {
-      console.warn("Popup failed, falling back to redirect:", popupError);
+      console.warn("Popup failed → redirect:", popupError);
       await signInWithRedirect(auth, googleProvider);
     }
   };
 
-  // 🔹 Firebase auth listener (handles both popup + redirect)
+  // ---------- Firebase listener ----------
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      // Only act if user exists and hasn't been synced yet
       if (!firebaseUser) return;
+      if (hasSynced.current && firebaseUser.uid === user?.uid) return;
 
-      const userData = {
-        name: firebaseUser.displayName,
-        email: firebaseUser.email,
-        photo: firebaseUser.photoURL,
-        uid: firebaseUser.uid,
-      };
+      hasSynced.current = true; // guard further repeats
+      console.log("✅ Firebase user detected:", firebaseUser.email);
 
       try {
         const res = await fetch(`${API_URL}/api/users/google-login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(userData),
+          body: JSON.stringify({
+            name: firebaseUser.displayName,
+            email: firebaseUser.email,
+            photo: firebaseUser.photoURL,
+            uid: firebaseUser.uid,
+          }),
         });
 
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
+        console.log("⬇️ Backend response:", data);
 
         if (data.success) {
           localStorage.setItem("user", JSON.stringify(data.user));
           setUser(data.user);
           setLogin(true);
-          logIn(data.user);
-        } else {
-          console.error("Backend login failed:", data);
+
+          // update context if changed
+          if (!ctxUser || ctxUser.uid !== data.user.uid) {
+            logIn(data.user);
+          }
         }
-      } catch (e) {
-        console.error("Login error:", e);
+      } catch (err) {
+        console.error("Login error:", err);
       }
     });
 
     return unsubscribe;
-  }, [API_URL, logIn]);
+    // 🚫 do NOT add dependencies (keeps single listener)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // runs exactly once
 
+  // ---------- UI ----------
   return (
     <div className="flex items-center justify-between w-screen px-4 !lg:max-h-[10vh] py-4 shadow-[0_3px_10px_rgb(0,0,0,0.2)]">
       <div
         onClick={() => window.location.reload()}
-        className="text-5xl font-bitcount w-1/2 cursor-target"
+        className="text-5xl font-bitcount  cursor-target"
       >
         <div className="w-fit">The MCG</div>
       </div>
@@ -91,39 +87,19 @@ const Nav = () => {
         {login && user ? (
           <>
             <div className="flex">
-              {user.photo ? (
-                <div className="h-12 w-12 rounded-full overflow-hidden">
-                  <img
-                    src={user.photo}
-                    alt="User profile"
-                    className="h-full w-full object-cover cursor-target"
-                    referrerPolicy="no-referrer"
-                  />
-                </div>
-              ) : (
-                <div className="h-12 w-12 flex items-center justify-center rounded-full bg-gray-200">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="size-10 text-gray-500"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
-                    />
-                  </svg>
-                </div>
-              )}
+              <div className="h-12 w-12 rounded-full overflow-hidden">
+                <img
+                  src={user.photo}
+                  alt="User profile"
+                  className="h-full w-full object-cover cursor-target"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
             </div>
-
             <div className="flex flex-col text-sm">
               <div className="text-center">{user.name}</div>
               <div className="flex gap-2 items-center">
-                <div>lvl {user.level}</div>
+                <div className="whitespace-nowrap">lvl {user.level}</div>
                 <div className="w-20">
                   <Progress
                     value={user.exp / 10}
@@ -142,8 +118,6 @@ const Nav = () => {
               Google Login
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                x="0px"
-                y="0px"
                 width="25"
                 height="25"
                 viewBox="0 0 48 48"

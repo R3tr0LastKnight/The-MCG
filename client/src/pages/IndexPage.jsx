@@ -1,4 +1,4 @@
-import React, { lazy, useState } from "react";
+import React, { useState } from "react";
 import { cn } from "../lib/utils.tsx";
 import { DotPattern } from "../components/ui/dot-pattern.tsx";
 import { useEffect } from "react";

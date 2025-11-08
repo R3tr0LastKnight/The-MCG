@@ -1,4 +1,5 @@
-import React, { lazy, useEffect, useState } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, { useEffect, useState } from "react";
 import { useUser } from "../utils/userContext";
 import { auth } from "../firebase";
 import { fetchUserSummary } from "../api/spotify";
@@ -55,7 +56,7 @@ const AccountPage = () => {
 
   if (!userSummary) return <AccountSkeleton />;
 
-  const { name, email, photo, level } = userSummary;
+  const { name, email, photo } = userSummary;
 
   return (
     <div className="w-full flex flex-col lg:flex-row gap-5 mx-5 mt-12 relative z-20">
@@ -92,8 +93,14 @@ const AccountPage = () => {
                 </div>
               </div>
             </div>
-            <div className="flex shadow-[0_3px_10px_rgb(0,0,0,0.2)] w-full p-2 mt-6  py-20 justify-center rounded">
-              work in progress....
+            <div className="flex-1 shadow-[0_3px_10px_rgb(0,0,0,0.2)] w-full p-2 mt-6  py-10 justify-center rounded select-text">
+              Hi there collector, Hope your having fun collecting your musical
+              collection ! I'm R3tr0LastKnight the creator of The MCG, hope ur
+              doing well, if u wish to contact me u can mail me at{" "}
+              <div className="inline-flex underline">
+                r3tr0lastknight@gmail.com
+              </div>
+              , stay tuned for more features !!!
             </div>
           </div>
 

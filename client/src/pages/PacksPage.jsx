@@ -1,4 +1,4 @@
-import React, { useState, useEffect, lazy } from "react";
+import React, { useState, useEffect } from "react";
 import { useUser } from "../utils/userContext";
 import { fetchAllPacks } from "../api/spotify";
 import {

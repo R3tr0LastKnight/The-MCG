@@ -1,4 +1,6 @@
-import React, { lazy, useEffect, useRef, useState } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+// eslint-disable-next-line react-hooks/exhaustive-deps
+import React, { useEffect, useRef, useState } from "react";
 import * as htmlToImage from "html-to-image";
 import { motion } from "framer-motion";
 import { Progress } from "../components/ui/Progress.tsx";
@@ -148,21 +150,21 @@ const PacksPage = () => {
       }
 
       // ✅ 3. Filter out only accessible styleSheets
-      const safeSheets = Array.from(document.styleSheets).filter((sheet) => {
-        try {
-          void sheet.cssRules;
-          return true;
-        } catch {
-          return false;
-        }
-      });
+      // const safeSheets = Array.from(document.styleSheets).filter((sheet) => {
+      //   try {
+      //     void sheet.cssRules;
+      //     return true;
+      //   } catch {
+      //     return false;
+      //   }
+      // });
 
       // Temporarily override document.styleSheets
-      const originalSheets = document.styleSheets;
-      Object.defineProperty(document, "styleSheets", {
-        value: safeSheets,
-        configurable: true,
-      });
+      // const originalSheets = document.styleSheets;
+      // Object.defineProperty(document, "styleSheets", {
+      //   value: safeSheets,
+      //   configurable: true,
+      // });
 
       // ✅ 4. Capture the element
       const dataUrl = await htmlToImage.toPng(screenshotArea.current, {

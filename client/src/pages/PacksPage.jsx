@@ -50,7 +50,7 @@ const PacksPage = () => {
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <div className="flex flex-col h-full w-full lg:px-16 justify-center items-center relative z-20">
-        <h1 className="text-6xl font-concent mt-16 lg:mt-0 mb-8 cursor-target">
+        <h1 className="text-6xl font-bitcount mt-16 lg:mt-0 mb-8 cursor-target">
           Packs
         </h1>
 
@@ -108,7 +108,7 @@ const PacksPage = () => {
 
             <DrawerDescription>
               <div className="p-6 rounded-lg relative bg-white lg:bg-transparent z-40 items-center flex flex-col gap-4">
-                <h1 className="font-concent text-3xl lg:text-4xl  whitespace-nowrap">
+                <h1 className="font-bitcount text-3xl lg:text-5xl  whitespace-nowrap">
                   Pack Details
                 </h1>
 

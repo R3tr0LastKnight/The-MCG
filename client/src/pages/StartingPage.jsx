@@ -502,7 +502,7 @@ const PacksPage = () => {
                 backgroundColor: packData.bgColor,
                 color: packData.textColor,
               }}
-              className="px-4 py-1 text-lg rounded-lg shadow-[0px_2px_10px_rgb(0,0,0,0.2)]  absolute bottom-0  cursor-target"
+              className="px-4 font-bitcount py-1 text-lg rounded-lg shadow-[0px_2px_10px_rgb(0,0,0,0.2)]  absolute bottom-0  cursor-target"
               onClick={handleOpenPackClick}
             >
               Open Pack
@@ -523,7 +523,7 @@ const PacksPage = () => {
 
             {keep < 1 && burned === true ? (
               <div className="absolute left-1/2  transform -translate-x-1/2 bottom-6  lg:left-[70%] lg:top-32 lg:translate-x-0 flex gap-2 flex-col ">
-                <h1 className="font-concent hidden lg:flex text-xl lg:text-6xl">
+                <h1 className="font-cinzel hidden lg:flex text-xl lg:text-6xl">
                   CHOOSE
                 </h1>
                 <div className="flex lg:flex-col gap-2">
@@ -560,7 +560,7 @@ const PacksPage = () => {
 
         {keep === 2 && oldCard ? (
           <div className="flex flex-col scale-50 lg:scale-100 items-center justify-center absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 gap-4">
-            <h1 className="text-6xl font-concent">Choose 1 to keep</h1>
+            <h1 className="text-6xl font-cinzel">Choose 1 to keep</h1>
             <div className="flex items-center justify-center gap-6">
               {/* New Card */}
               <div className="z-50 flex relative items-center gap-0">
@@ -635,7 +635,7 @@ const PacksPage = () => {
                   ) : (
                     <></>
                   )}
-                  <h1 className="font-concent lg:flex text-3xl lg:text-5xl h-1/4 underline whitespace-nowrap ">
+                  <h1 className="font-bitcount lg:flex text-3xl lg:text-5xl h-1/4  whitespace-nowrap ">
                     {choosin === 1 ? <>XP Gained</> : <>No XP Gained</>}
                   </h1>
                   <div className="text-center">
@@ -648,7 +648,7 @@ const PacksPage = () => {
                     )}
                   </div>
                   <div className="flex flex-col justify-center h-2/4  px-4 gap-2 lg:w-[400px]">
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-2 font-libertinus">
                       <div className="  text-sm grid grid-cols-1">
                         <p>
                           <span className="font-bold">Album:</span>{" "}

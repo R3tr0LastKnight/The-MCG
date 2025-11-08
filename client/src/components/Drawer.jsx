@@ -102,7 +102,7 @@ const Drawer = ({ page, setPage }) => {
         onClick={() => setIsDrawOpen(!isDrawOpen)}
         className="cursor-target flex items-center relative z-40 top-36 justify-center w-12 h-20 bg-white   rounded-tr-lg rounded-br-lg shadow-[5px_3px_10px_rgb(0,0,0,0.2)]"
       >
-        <div className="rotate-90 font-poppins ">menu</div>
+        <div className="rotate-90 font-bitcount ">menu</div>
       </div>
     </motion.div>
   );

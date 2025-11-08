@@ -1,10 +1,10 @@
 import React, { useRef, useState, useMemo, Suspense } from "react";
 import { FastAverageColor } from "fast-average-color";
 
-const LiquidChrome = React.lazy(() => import("./ui/LiquidChrome"));
-const Iridescence = React.lazy(() => import("./ui/Iridescence"));
-const Dither = React.lazy(() => import("./ui/Dither"));
-const Silk = React.lazy(() => import("./ui/Silk"));
+import LiquidChrome from "./ui/LiquidChrome";
+import Iridescence from "./ui/Iridescence";
+import Dither from "./ui/Dither";
+import Silk from "./ui/Silk";
 
 const CardReRender = ({ cardData, type, ...props }) => {
   const imgRef = useRef(null);
@@ -147,7 +147,7 @@ const CardReRender = ({ cardData, type, ...props }) => {
             />
           </div>
           <div className="flex flex-col w-full px-10 py-2 font-libertinus">
-            <div className="font-concent text-2xl line-clamp-2">
+            <div className="font-cinzel font-semibold text-xl line-clamp-2">
               {cardData?.track.track.name}
             </div>
             <div className="font-semibold">{cardData?.track.album?.name}</div>

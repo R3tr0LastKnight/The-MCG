@@ -179,8 +179,8 @@ const Pack = ({
             />
           </div>
           <div className="flex flex-col text-center">
-            <h1 className="text-3xl font-concent px-2">{album?.album}</h1>
-            <h2 className="text-lg font-libertinus">{album?.artist}</h2>
+            <h1 className="text-2xl font-bitcount px-2">{album?.album}</h1>
+            <h2 className="text-base font-libertinus">{album?.artist}</h2>
             <a
               href={album?.spotifyUrl}
               target="_blank"

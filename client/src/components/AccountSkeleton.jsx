@@ -29,7 +29,7 @@ const AccountSkeleton = () => {
         {/* Latest Card Skeleton */}
         <div>
           <div className="h-6 bg-gray-200 w-32 rounded mb-2"></div>
-          <div className="h-[350px] w-[240px] bg-gray-300 rounded-lg shadow-[0_3px_10px_rgb(0,0,0,0.2)]"></div>
+          <div className="h-[350px] w-[240px] mx-auto bg-gray-300 rounded-lg shadow-[0_3px_10px_rgb(0,0,0,0.2)]"></div>
         </div>
       </div>
 

@@ -53,7 +53,9 @@ const LeaderboardPage = () => {
 
   return (
     <div className="lg:w-[80%] w-[100%] mx-auto p-6 mb-6">
-      <h2 className="text-6xl mb-4 text-center font-concent">Leaderboard</h2>
+      <h2 className="text-6xl mb-4 text-center font-bitcount cursor-target w-fit mx-auto">
+        Leaderboard
+      </h2>
 
       <div className="rounded-2xl border  shadow-[0_3px_10px_rgb(0,0,0,0.2)] mb-4 bg-white text-black backdrop-blur-md w-full overflow-hidden">
         <Table className="w-full text-base">

@@ -64,7 +64,7 @@ export default function CollectionPage({ page }) {
     <>
       <Drawer open={open} onOpenChange={setOpen}>
         <div className="flex flex-col h-full w-full lg:px-16 justify-center items-center bg-transparent relative z-20">
-          <h1 className="text-6xl font-concent mt-16 lg:mt-0 mb-4 cursor-target">
+          <h1 className="text-6xl font-bitcount  mt-16 lg:mt-0 mb-4 cursor-target">
             Collection
           </h1>
           <div className="cursor-target rounded-lg overflow-hidden flex flex-col bg-white items-center justify-center mb-4 shadow-[0_3px_10px_rgb(0,0,0,0.2)] px-2 py-1">
@@ -124,7 +124,9 @@ export default function CollectionPage({ page }) {
                     {Array.from({ length: pagination.totalPages }, (_, idx) => (
                       <div
                         key={idx + 1}
-                        onClick={() => handlePageChange(idx + 1)}
+                        onClick={() => {
+                          handlePageChange(idx + 1);
+                        }}
                         className={`px-3 py-1 rounded cursor-target ${
                           pagination.currentPage === idx + 1
                             ? "bg-black text-white"
@@ -177,7 +179,7 @@ export default function CollectionPage({ page }) {
 
               <DrawerDescription>
                 <div className="p-4 rounded-xl relative bg-white lg:bg-transparent z-40 items-center flex gap-2 flex-col">
-                  <h1 className="font-concent text-3xl lg:text-4xl  whitespace-nowrap">
+                  <h1 className="font-bitcount text-3xl lg:text-5xl  whitespace-nowrap">
                     Card Details
                   </h1>
 

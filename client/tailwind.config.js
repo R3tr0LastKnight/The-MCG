@@ -10,6 +10,9 @@ module.exports = {
       bitcount: ['"Bitcount Prop Single"', "system-ui"],
       libertinus: ["Libertinus Serif", "system-ui"],
       product: ["Inter", "sans-serif"],
+      cinzel: ["Cinzel Decorative", "sans-serif"],
+      pressstart2p: ["Press Start 2P", "system-ui"],
+      jersey: ["Jersey 10", "system-ui"],
     },
     extend: {
       animation: {

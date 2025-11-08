@@ -41,7 +41,7 @@ const PackReRenderer = ({ packData }) => {
       </div>
 
       <div className="flex flex-col text-center relative">
-        <h1 className="text-3xl font-concent px-2 line-clamp-2">
+        <h1 className="text-3xl font-bitcount  px-2 line-clamp-2">
           {packData?.album}
         </h1>
         <h2 className="text-lg font-libertinus">{packData?.artist}</h2>

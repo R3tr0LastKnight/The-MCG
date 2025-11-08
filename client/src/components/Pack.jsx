@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, { useEffect, useState } from "react";
 import { fetchAllEnrichedAlbums } from "../api/spotify";
 import { FastAverageColor } from "fast-average-color";
 import { motion, AnimatePresence } from "framer-motion";

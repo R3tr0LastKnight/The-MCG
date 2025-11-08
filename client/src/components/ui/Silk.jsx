@@ -2,7 +2,6 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { forwardRef, useRef, useMemo, useLayoutEffect } from "react";
 import { Color } from "three";
-import useResizeCanvas from "./ResizeSync";
 import ResizeSync from "./ResizeSync";
 
 const hexToNormalizedRGB = (hex) => {

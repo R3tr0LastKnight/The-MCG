@@ -184,31 +184,29 @@ const PacksPage = () => {
   };
 
   useEffect(() => {
-    if (keep === 2) {
+    // only run after user has made a choice
+    if (keep === 2 && choosin !== 0) {
       const pushCard = async () => {
         try {
+          // Case 1: No old card — always save new
           if (!oldCard) {
-            // console.log("oldcard");
-
-            // no duplicate → just save new card
-            // console.log("card Data 2 :", cardData2);
-
             await saveOrReplaceCard(auth.currentUser?.uid, {
               newCard: cardData2?.data,
             });
           }
-          if (choosin === 1) {
-            // replace oldCard with cardData2
+          // Case 2: User chose new card
+          else if (choosin === 1) {
             await saveOrReplaceCard(auth.currentUser?.uid, {
               newCard: cardData2?.data,
               oldCard: oldCard?.data,
             });
-            setKeep(3);
-          } else if (choosin === 2) {
-            // keep old card → no backend update
-            // console.log("Kept old card, no backend update");
-            setKeep(3);
           }
+          // Case 3: User kept old card — skip DB save
+          else if (choosin === 2) {
+            // console.log("Kept old card, skipping save");
+          }
+
+          setKeep(3);
         } catch (err) {
           console.error("Error saving card:", err);
         }
@@ -216,7 +214,7 @@ const PacksPage = () => {
 
       pushCard();
     }
-  }, [keep, choosin, cardData2, oldCard]);
+  }, [choosin]); // ✅ trigger only when user actually chooses
 
   useEffect(() => {
     if (keep === 3) {

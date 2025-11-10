@@ -49,6 +49,7 @@ const PacksPage = () => {
   const [hasOpened, setHasOpened] = useState(false); // after hover finishes
   const screenshotArea = useRef(null);
   const [open, setOpen] = useState(false);
+  // const [hasCheckedOld, setHasCheckedOld] = useState(false);
 
   useEffect(() => {
     if (imgSrc) {
@@ -184,37 +185,107 @@ const PacksPage = () => {
   };
 
   useEffect(() => {
-    // only run after user has made a choice
-    if (keep === 2 && choosin !== 0) {
-      const pushCard = async () => {
-        try {
-          // Case 1: No old card — always save new
-          if (!oldCard) {
-            await saveOrReplaceCard(auth.currentUser?.uid, {
-              newCard: cardData2?.data,
-            });
-          }
-          // Case 2: User chose new card
-          else if (choosin === 1) {
-            await saveOrReplaceCard(auth.currentUser?.uid, {
-              newCard: cardData2?.data,
-              oldCard: oldCard?.data,
-            });
-          }
-          // Case 3: User kept old card — skip DB save
-          else if (choosin === 2) {
-            // console.log("Kept old card, skipping save");
-          }
+    const handleCardFlowV2 = async () => {
+      if (keep !== 2 || !tempTrack) return;
 
-          setKeep(3);
-        } catch (err) {
-          console.error("Error saving card:", err);
+      try {
+        // 🧩 STEP 1 — Check if the card already exists in DB
+        const data = await getUserCardWithTrack(
+          auth.currentUser?.uid,
+          tempTrack.track.id
+        );
+
+        // ✅ CASE 1: No existing card
+        if (!data || !data.exists) {
+          console.log("🆕 No old card found → saving new card directly...");
+          await saveOrReplaceCard(auth.currentUser?.uid, {
+            newCard: cardData2?.data,
+          });
+
+          // setHasCheckedOld(true);
+          setChoosin(1); // mark as chosen (UI consistency)
+          setKeep(3); // move to next phase
+          return;
         }
-      };
 
-      pushCard();
-    }
-  }, [choosin]); // ✅ trigger only when user actually chooses
+        // ✅ CASE 2: Old card exists → store it for chooser UI
+        const normalized = mapOldCardResponse(data);
+        setOldCard(normalized);
+        // setHasCheckedOld(true);
+        console.log("📀 Old card found — waiting for user choice...");
+
+        // 🧠 Now, wait until the user chooses (choosin changes from 0)
+        const waitForUserChoice = () =>
+          new Promise((resolve) => {
+            const interval = setInterval(() => {
+              if (choosin === 1 || choosin === 2) {
+                clearInterval(interval);
+                resolve(choosin);
+              }
+            }, 100);
+          });
+
+        const choice = await waitForUserChoice();
+
+        // ✅ CASE 2A: User chose new card → replace old one
+        if (choice === 1) {
+          console.log("💾 User chose NEW card → replacing old one...");
+          await saveOrReplaceCard(auth.currentUser?.uid, {
+            newCard: cardData2?.data,
+            oldCard: normalized?.data,
+          });
+        }
+
+        // ✅ CASE 2B: User kept old card → skip save
+        if (choice === 2) {
+          console.log("🧠 User kept OLD card → skipping save.");
+        }
+
+        // ✅ Done
+        setKeep(3);
+      } catch (err) {
+        console.error("❌ Error in unified card flow v2:", err);
+      }
+    };
+
+    handleCardFlowV2();
+  }, [keep, tempTrack, choosin]);
+
+  // console.log("keep:", keep);
+
+  function mapOldCardResponse(res) {
+    if (!res.exists) return null;
+
+    const { card, track } = res;
+
+    return {
+      data: {
+        trackId: card.trackId,
+        albumId: card.albumId,
+        border: card.border,
+        bgSubId: card.bgSubId,
+        effectId: card.effectId,
+      },
+      track: {
+        track: {
+          id: track.id,
+          name: track.name,
+          duration_ms: track.duration_ms,
+          popularity: track.popularity,
+          preview_url: track.preview_url,
+          external_url: track.external_urls.spotify,
+        },
+
+        album: {
+          id: track.album.id,
+          artist: track.artists?.[0]?.name ?? "Unknown",
+          name: track.album.name,
+          image: track.album.images?.[0]?.url ?? null,
+          spotifyUrl: track.album.external_urls.spotify,
+        },
+      },
+    };
+  }
 
   useEffect(() => {
     if (keep === 3) {
@@ -255,6 +326,7 @@ const PacksPage = () => {
 
           // Save latest exp for next time
           setOldExp(result.exp);
+          setOldCard();
         } catch (err) {
           console.error(err.message);
         }
@@ -263,76 +335,6 @@ const PacksPage = () => {
       addFinalExp();
     }
   }, [keep]);
-
-  // console.log("keep:", keep);
-
-  useEffect(() => {
-    const checkExistingCard = async () => {
-      if (keep === 2 && tempTrack) {
-        try {
-          const data = await getUserCardWithTrack(
-            auth.currentUser?.uid,
-            tempTrack.track.id
-          );
-
-          if (!data || !data.exists) {
-            // console.log("No old card found → skipping chooser");
-            // 🚀 skip straight to XP step
-            setKeep(3);
-            setChoosin(1);
-            return;
-          }
-
-          // Normalize and save old card → now chooser makes sense
-          const normalized = mapOldCardResponse(data);
-          setOldCard(normalized);
-        } catch (err) {
-          if (err.message?.includes("404") || err.response?.status === 404) {
-            // console.log("No old card found → skipping chooser");
-            setKeep(3); // 🚀 skip chooser
-          } else {
-            console.error("Unexpected error fetching old card:", err);
-          }
-        }
-      }
-    };
-
-    checkExistingCard();
-  }, [keep, tempTrack]);
-
-  function mapOldCardResponse(res) {
-    if (!res.exists) return null;
-
-    const { card, track } = res;
-
-    return {
-      data: {
-        trackId: card.trackId,
-        albumId: card.albumId,
-        border: card.border,
-        bgSubId: card.bgSubId,
-        effectId: card.effectId,
-      },
-      track: {
-        track: {
-          id: track.id,
-          name: track.name,
-          duration_ms: track.duration_ms,
-          popularity: track.popularity,
-          preview_url: track.preview_url,
-          external_url: track.external_urls.spotify,
-        },
-
-        album: {
-          id: track.album.id,
-          artist: track.artists?.[0]?.name ?? "Unknown",
-          name: track.album.name,
-          image: track.album.images?.[0]?.url ?? null,
-          spotifyUrl: track.album.external_urls.spotify,
-        },
-      },
-    };
-  }
 
   function parseColor(color) {
     if (color.startsWith("#")) {
@@ -635,8 +637,12 @@ const PacksPage = () => {
                   ) : (
                     <></>
                   )}
-                  <h1 className="font-bitcount lg:flex text-3xl lg:text-5xl h-1/4  whitespace-nowrap ">
-                    {choosin === 1 ? <>XP Gained</> : <>No XP Gained</>}
+                  <h1 className="font-bitcount lg:flex text-3xl lg:text-5xl h-1/4   whitespace-nowrap ">
+                    {choosin === 1 ? (
+                      <div className="mt-4">XP Gained</div>
+                    ) : (
+                      <>No XP Gained</>
+                    )}
                   </h1>
                   <div className="text-center">
                     {choosin === 2 ? (

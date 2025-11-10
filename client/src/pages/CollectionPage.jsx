@@ -1,5 +1,6 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
-import { fetchUserAlbums } from "../api/spotify";
+import { fetchUserAlbums, fetchUserSummary } from "../api/spotify";
 import { auth } from "../firebase";
 import { useUser } from "../utils/userContext";
 import {
@@ -16,7 +17,7 @@ import CardReRender from "../components/CardRerenderer";
 export default function CollectionPage({ page }) {
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { user, cardCount } = useUser();
+  const { user, cardCount, setCardCount } = useUser();
   const [pagination, setPagination] = useState({
     totalPages: 1,
     currentPage: 1,
@@ -32,9 +33,21 @@ export default function CollectionPage({ page }) {
     try {
       setLoading(true);
       setStartCount(true);
+
+      // 🔹 fetch user’s collection cards
       const data = await fetchUserAlbums(currentUser.uid, pageNum, 9);
       setCards(Array.isArray(data.cards) ? data.cards : []);
       setPagination(data.pagination || { totalPages: 1, currentPage: 1 });
+
+      // 🔹 also refresh card count from backend
+      try {
+        const summary = await fetchUserSummary(currentUser.uid);
+        if (summary?.cardCount !== undefined) {
+          setCardCount(summary.cardCount);
+        }
+      } catch (countErr) {
+        console.warn("Card count fetch failed:", countErr);
+      }
     } catch (err) {
       console.error("Failed to load collection:", err);
       setCards([]);
